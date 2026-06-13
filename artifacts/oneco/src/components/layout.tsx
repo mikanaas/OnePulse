@@ -44,9 +44,9 @@ function NavContent() {
   const isAdmin = user?.publicMetadata?.systemRole === "admin" || user?.publicMetadata?.systemRole === undefined; // Check properly in real implementation
   
   const navItems = [
-    { title: "Portfolio", icon: LayoutDashboard, href: "/portfolio" },
+    { title: "Portefølje", icon: LayoutDashboard, href: "/portfolio" },
     { title: "Prosjekter", icon: Briefcase, href: "/projects" },
-    { title: "Min Arbeid", icon: CheckSquare, href: "/my-work" },
+    { title: "Mitt arbeid", icon: CheckSquare, href: "/my-work" },
   ];
 
   if (isAdmin) {

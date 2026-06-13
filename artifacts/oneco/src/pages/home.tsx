@@ -13,13 +13,13 @@ export default function Home() {
             </svg>
             <h1 className="text-4xl font-bold tracking-tight text-foreground">OneCo</h1>
           </div>
-          <p className="text-xl text-muted-foreground">Portfolio Management & Impact Measurement</p>
+          <p className="text-xl text-muted-foreground">Porteføljestyring og gevinstrealisering</p>
         </div>
         
         <div className="pt-8">
           <Link href="/sign-in" className="w-full inline-flex">
             <Button size="lg" className="w-full text-lg h-12">
-              Sign In
+              Logg inn
             </Button>
           </Link>
         </div>

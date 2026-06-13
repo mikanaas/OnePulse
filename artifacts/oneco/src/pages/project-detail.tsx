@@ -61,7 +61,7 @@ export default function ProjectDetail() {
 
         <Tabs defaultValue="dashboard" className="w-full">
           <TabsList className="w-full justify-start overflow-x-auto bg-transparent border-b rounded-none h-12 p-0">
-            <TabsTrigger value="dashboard" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-12 px-6">Dashboard</TabsTrigger>
+            <TabsTrigger value="dashboard" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-12 px-6">Oversikt</TabsTrigger>
             <TabsTrigger value="tasks" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-12 px-6">Oppgaver</TabsTrigger>
             <TabsTrigger value="activity" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-12 px-6">Aktivitetslogg</TabsTrigger>
             <TabsTrigger value="effects" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-12 px-6">Effekter</TabsTrigger>
