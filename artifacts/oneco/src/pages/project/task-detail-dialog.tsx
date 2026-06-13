@@ -105,7 +105,7 @@ export function TaskDetailDialog({ task, projectId, open, onOpenChange }: Props)
         dueDate: task.dueDate
           ? task.dueDate.split("T")[0]
           : "",
-        assigneeId: task.assigneeId != null ? String(task.assigneeId) : "",
+        assigneeId: task.assigneeId != null ? String(task.assigneeId) : "none",
       });
     }
   }, [task, form]);
@@ -122,7 +122,7 @@ export function TaskDetailDialog({ task, projectId, open, onOpenChange }: Props)
           status: data.status,
           priority: data.priority,
           dueDate: data.dueDate || null,
-          assigneeId: data.assigneeId ? Number(data.assigneeId) : null,
+          assigneeId: data.assigneeId && data.assigneeId !== "none" ? Number(data.assigneeId) : null,
         },
       },
       {
@@ -278,7 +278,7 @@ export function TaskDetailDialog({ task, projectId, open, onOpenChange }: Props)
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">Ingen</SelectItem>
+                        <SelectItem value="none">Ingen</SelectItem>
                         {users?.map((u) => (
                           <SelectItem key={u.id} value={String(u.id)}>
                             {u.name || u.email}

@@ -305,7 +305,7 @@ export function TasksTab({ projectId }: { projectId: number }) {
           status: data.status,
           priority: data.priority,
           dueDate: data.dueDate || undefined,
-          assigneeId: data.assigneeId ? Number(data.assigneeId) : undefined,
+          assigneeId: data.assigneeId && data.assigneeId !== "none" ? Number(data.assigneeId) : undefined,
         },
       },
       {
@@ -508,7 +508,7 @@ export function TasksTab({ projectId }: { projectId: number }) {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="">Ingen</SelectItem>
+                            <SelectItem value="none">Ingen</SelectItem>
                             {users?.map((u) => (
                               <SelectItem key={u.id} value={String(u.id)}>
                                 {u.name || u.email}
