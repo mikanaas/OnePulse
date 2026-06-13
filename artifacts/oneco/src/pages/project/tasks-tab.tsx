@@ -49,6 +49,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { TaskDetailDialog, type TaskForDialog } from "./task-detail-dialog";
 import {
   DndContext,
   DragOverlay,
@@ -88,11 +89,13 @@ type Task = {
 function TaskCardContent({
   task,
   onStatusChange,
+  onOpen,
   showControls = true,
   dragHandleProps,
 }: {
   task: Task;
   onStatusChange: (taskId: number, status: string) => void;
+  onOpen?: () => void;
   showControls?: boolean;
   dragHandleProps?: React.HTMLAttributes<HTMLButtonElement>;
 }) {
@@ -102,10 +105,15 @@ function TaskCardContent({
     task.status !== "fullfort";
 
   return (
-    <Card className="hover:border-primary/50 transition-colors">
+    <Card
+      className="hover:border-primary/50 transition-colors"
+      onClick={onOpen}
+      style={{ cursor: onOpen ? "pointer" : "default" }}
+    >
       <div className="flex items-start">
         <button
           {...dragHandleProps}
+          onClick={(e) => e.stopPropagation()}
           className="p-2 pt-3.5 text-muted-foreground/40 hover:text-muted-foreground cursor-grab active:cursor-grabbing touch-none select-none"
           style={{ touchAction: "none" }}
         >
@@ -127,7 +135,10 @@ function TaskCardContent({
                 value={task.status}
                 onValueChange={(v) => onStatusChange(task.id, v)}
               >
-                <SelectTrigger className="h-6 w-6 p-0 border-none bg-transparent">
+                <SelectTrigger
+                  className="h-6 w-6 p-0 border-none bg-transparent"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <span className="sr-only">Endre status</span>
                 </SelectTrigger>
                 <SelectContent>
@@ -173,9 +184,11 @@ function TaskCardContent({
 function DraggableTaskCard({
   task,
   onStatusChange,
+  onOpen,
 }: {
   task: Task;
   onStatusChange: (taskId: number, status: string) => void;
+  onOpen: () => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({ id: task.id });
@@ -192,6 +205,7 @@ function DraggableTaskCard({
       <TaskCardContent
         task={task}
         onStatusChange={onStatusChange}
+        onOpen={onOpen}
         dragHandleProps={{ ...listeners, ...attributes }}
       />
     </div>
@@ -202,10 +216,12 @@ function KanbanColumn({
   colKey,
   tasks,
   onStatusChange,
+  onOpenTask,
 }: {
   colKey: string;
   tasks: Task[];
   onStatusChange: (taskId: number, status: string) => void;
+  onOpenTask: (task: Task) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: colKey });
 
@@ -228,6 +244,7 @@ function KanbanColumn({
             key={task.id}
             task={task}
             onStatusChange={onStatusChange}
+            onOpen={() => onOpenTask(task)}
           />
         ))}
       </div>
@@ -250,6 +267,8 @@ export function TasksTab({ projectId }: { projectId: number }) {
   const [view, setView] = useState<"kanban" | "list">("kanban");
   const [open, setOpen] = useState(false);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
+  const [selectedTask, setSelectedTask] = useState<TaskForDialog | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
@@ -297,6 +316,11 @@ export function TasksTab({ projectId }: { projectId: number }) {
         },
       }
     );
+  };
+
+  const handleOpenTask = (task: Task) => {
+    setSelectedTask(task);
+    setDetailOpen(true);
   };
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -486,6 +510,7 @@ export function TasksTab({ projectId }: { projectId: number }) {
                   colKey={col}
                   tasks={colTasks}
                   onStatusChange={handleStatusChange}
+                  onOpenTask={handleOpenTask}
                 />
               );
             })}
@@ -509,7 +534,8 @@ export function TasksTab({ projectId }: { projectId: number }) {
             {tasks?.map((task) => (
               <div
                 key={task.id}
-                className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+                onClick={() => handleOpenTask(task)}
               >
                 <div className="flex items-center gap-4">
                   <Select
@@ -518,6 +544,7 @@ export function TasksTab({ projectId }: { projectId: number }) {
                   >
                     <SelectTrigger
                       className={`w-[130px] h-8 ${taskStatusMap[task.status]?.color}`}
+                      onClick={(e) => e.stopPropagation()}
                     >
                       <SelectValue />
                     </SelectTrigger>
@@ -558,6 +585,13 @@ export function TasksTab({ projectId }: { projectId: number }) {
           </div>
         </div>
       )}
+
+      <TaskDetailDialog
+        task={selectedTask}
+        projectId={projectId}
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+      />
     </div>
   );
 }

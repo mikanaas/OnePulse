@@ -34,7 +34,7 @@ router.post("/users/me/sync", async (req, res) => {
 });
 
 // GET /api/users
-router.get("/users", requireAdmin, async (_req, res) => {
+router.get("/users", requireAuth, async (_req, res) => {
   const users = await db.select().from(usersTable);
   res.json(users);
 });
