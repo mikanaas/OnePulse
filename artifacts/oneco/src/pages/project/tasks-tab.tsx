@@ -45,6 +45,11 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   DndContext,
   DragOverlay,
   PointerSensor,
@@ -135,7 +140,12 @@ function TaskCardContent({
               </Select>
             )}
           </div>
-          <p className="font-medium text-sm mb-2">{task.title}</p>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <p className="font-medium text-sm mb-2 line-clamp-2 cursor-default">{task.title}</p>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="max-w-[220px] text-xs">{task.title}</TooltipContent>
+          </Tooltip>
           <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
             <div className="flex items-center gap-1">
               <Calendar className="h-3 w-3" />
