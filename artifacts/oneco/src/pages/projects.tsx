@@ -60,9 +60,9 @@ export default function ProjectsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Navn</TableHead>
+                <TableHead className="max-w-[240px]">Navn</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Forretningsområde</TableHead>
+                <TableHead className="max-w-[160px]">Forretningsområde</TableHead>
                 <TableHead className="text-right">Målbesparelse</TableHead>
                 <TableHead className="text-right">Oppgaver</TableHead>
               </TableRow>
@@ -87,13 +87,13 @@ export default function ProjectsPage() {
                     className="cursor-pointer hover:bg-muted/50"
                     onClick={() => setLocation(`/projects/${project.id}`)}
                   >
-                    <TableCell className="font-medium">{project.name}</TableCell>
+                    <TableCell className="font-medium max-w-[240px]"><span className="block truncate">{project.name}</span></TableCell>
                     <TableCell>
                       <Badge variant="outline" className={statusMap[project.status]?.color}>
                         {statusMap[project.status]?.label || project.status}
                       </Badge>
                     </TableCell>
-                    <TableCell>{project.businessUnit || "-"}</TableCell>
+                    <TableCell className="max-w-[160px]"><span className="block truncate">{project.businessUnit || "-"}</span></TableCell>
                     <TableCell className="text-right">
                       {project.goalSavingsValue 
                         ? (project.goalSavingsUnit === "kr" ? formatCurrency(project.goalSavingsValue) : `${project.goalSavingsValue} timer`)

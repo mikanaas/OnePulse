@@ -14,24 +14,24 @@ export function DashboardTab({ projectId }: { projectId: number }) {
   return (
     <div className="space-y-6 mt-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Ansvarlig</CardTitle>
-            <Briefcase className="h-4 w-4 text-muted-foreground" />
+        <Card className="min-w-0">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 gap-2">
+            <CardTitle className="text-sm font-medium leading-snug">Ansvarlig</CardTitle>
+            <Briefcase className="h-4 w-4 text-muted-foreground shrink-0" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{project.ownerName || "Ikke tildelt"}</div>
-            <p className="text-xs text-muted-foreground mt-1">Forretningsområde: {project.businessUnit || "-"}</p>
+          <CardContent className="min-w-0">
+            <div className="text-xl font-bold truncate leading-tight">{project.ownerName || "Ikke tildelt"}</div>
+            <p className="text-xs text-muted-foreground mt-1 truncate">Forretningsområde: {project.businessUnit || "-"}</p>
           </CardContent>
         </Card>
         
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Målbesparelse</CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
+        <Card className="min-w-0">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 gap-2">
+            <CardTitle className="text-sm font-medium leading-snug">Målbesparelse</CardTitle>
+            <Target className="h-4 w-4 text-muted-foreground shrink-0" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
+          <CardContent className="min-w-0">
+            <div className="text-xl font-bold truncate leading-tight">
               {project.goalSavingsValue ? 
                 (project.goalSavingsUnit === "kr" ? formatCurrency(project.goalSavingsValue) : `${formatNumber(project.goalSavingsValue)} timer`) 
                 : "-"}
@@ -40,27 +40,27 @@ export function DashboardTab({ projectId }: { projectId: number }) {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Fremdrift oppgaver</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+        <Card className="min-w-0">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 gap-2">
+            <CardTitle className="text-sm font-medium leading-snug">Fremdrift oppgaver</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{project.completedTaskCount || 0} / {project.taskCount || 0}</div>
+          <CardContent className="min-w-0">
+            <div className="text-xl font-bold truncate leading-tight">{project.completedTaskCount || 0} / {project.taskCount || 0}</div>
             <p className="text-xs text-muted-foreground mt-1">Fullførte oppgaver</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tidsramme</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
+        <Card className="min-w-0">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 gap-2">
+            <CardTitle className="text-sm font-medium leading-snug">Tidsramme</CardTitle>
+            <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
           </CardHeader>
-          <CardContent>
-            <div className="text-lg font-bold">
+          <CardContent className="min-w-0">
+            <div className="text-xl font-bold truncate leading-tight">
               {project.startDate ? new Date(project.startDate).toLocaleDateString("no-NO") : "-"} 
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-muted-foreground mt-1 truncate">
               Til {project.plannedEndDate ? new Date(project.plannedEndDate).toLocaleDateString("no-NO") : "-"}
             </p>
           </CardContent>

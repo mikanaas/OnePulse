@@ -22,8 +22,8 @@ export default function MyWorkPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Oppgave</TableHead>
-                <TableHead>Prosjekt</TableHead>
+                <TableHead className="max-w-[240px]">Oppgave</TableHead>
+                <TableHead className="max-w-[160px]">Prosjekt</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Prioritet</TableHead>
                 <TableHead>Frist</TableHead>
@@ -49,8 +49,8 @@ export default function MyWorkPage() {
                     className="cursor-pointer hover:bg-muted/50"
                     onClick={() => setLocation(`/projects/${task.projectId}`)}
                   >
-                    <TableCell className="font-medium">{task.title}</TableCell>
-                    <TableCell>{task.projectName}</TableCell>
+                    <TableCell className="font-medium max-w-[240px]"><span className="block truncate">{task.title}</span></TableCell>
+                    <TableCell className="max-w-[160px]"><span className="block truncate">{task.projectName}</span></TableCell>
                     <TableCell>
                       <Badge variant="outline" className={taskStatusMap[task.status]?.color}>
                         {taskStatusMap[task.status]?.label || task.status}
