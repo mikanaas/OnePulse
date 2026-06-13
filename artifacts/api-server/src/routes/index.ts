@@ -10,6 +10,7 @@ import portfolioRouter from "./portfolio";
 import aiRouter from "./ai";
 import reportsRouter from "./reports";
 import auditRouter from "./audit";
+import adminRouter from "./admin";
 
 const router: IRouter = Router();
 
@@ -24,5 +25,6 @@ router.use(portfolioRouter);
 router.use(aiRouter);
 router.use(reportsRouter);
 router.use(auditRouter);
+router.use(adminRouter);
 
 export default router;
