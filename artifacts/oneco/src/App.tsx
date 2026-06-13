@@ -3,7 +3,7 @@ import { QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { useSyncMe, setAuthTokenGetter } from "@workspace/api-client-react";
+import { useSyncMe, setAuthTokenGetter, useGetMe } from "@workspace/api-client-react";
 import { useEffect, useRef } from "react";
 import { ClerkProvider, SignIn, SignUp, Show, useClerk, useUser, useAuth } from "@clerk/react";
 
@@ -144,15 +144,13 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
 }
 
 function AdminRoute({ component: Component }: { component: React.ComponentType }) {
-  const { user, isLoaded } = useUser();
-  const isAdmin = user?.publicMetadata?.systemRole === "admin" || user?.publicMetadata?.systemRole === undefined;
-  
-  if (!isLoaded) return null;
-  
-  if (!isAdmin) {
-    return <Redirect to="/portfolio" />;
-  }
-  
+  const { isLoaded, isSignedIn } = useUser();
+  const { data: me, isLoading: meLoading } = useGetMe({ query: { queryKey: ["/api/users/me"], enabled: isSignedIn === true } });
+
+  if (!isLoaded || meLoading) return null;
+  if (!isSignedIn) return <Redirect to="/" />;
+  if (me?.systemRole !== "admin") return <Redirect to="/portfolio" />;
+
   return <ProtectedRoute component={Component} />;
 }
 

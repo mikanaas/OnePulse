@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useListUsers } from "@workspace/api-client-react";
+import { useListUsers, useCreateUser } from "@workspace/api-client-react";
 import { AppLayout } from "@/components/layout";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +8,9 @@ import { Loader2, Plus, Shield, User as UserIcon, Download, Trash2 } from "lucid
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,18 +22,33 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@clerk/react";
 
 export default function AdminPage() {
-  const [, setLocation] = useLocation();
+  const [, ] = useLocation();
   const { getToken } = useAuth();
   const { toast } = useToast();
-  const { data: users, isLoading } = useListUsers();
+  const { data: users, isLoading, refetch: refetchUsers } = useListUsers();
+  const createUser = useCreateUser();
 
   const [seedStatus, setSeedStatus] = useState<{ seeded: boolean; projectCount: number } | null>(null);
   const [seedLoading, setSeedLoading] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
+
+  const [newUserOpen, setNewUserOpen] = useState(false);
+  const [newUserName, setNewUserName] = useState("");
+  const [newUserEmail, setNewUserEmail] = useState("");
+  const [newUserRole, setNewUserRole] = useState<"user" | "admin">("user");
+  const [newUserLoading, setNewUserLoading] = useState(false);
 
   async function authHeader(): Promise<Record<string, string>> {
     const token = await getToken();
@@ -54,6 +72,7 @@ export default function AdminPage() {
       if (r.ok) {
         toast({ title: "Demodata lastet inn", description: `${body.projects} prosjekter og ${body.users} brukere opprettet.` });
         fetchSeedStatus();
+        refetchUsers();
       } else {
         toast({ title: body.error ?? "Noe gikk galt", variant: "destructive" });
       }
@@ -71,11 +90,34 @@ export default function AdminPage() {
       if (r.ok) {
         toast({ title: "Prosjekter slettet", description: `${body.deleted} prosjekter og tilhørende data er fjernet.` });
         fetchSeedStatus();
+        refetchUsers();
       } else {
         toast({ title: body.error ?? "Noe gikk galt", variant: "destructive" });
       }
     } finally {
       setResetLoading(false);
+    }
+  }
+
+  function openNewUser() {
+    setNewUserName("");
+    setNewUserEmail("");
+    setNewUserRole("user");
+    setNewUserOpen(true);
+  }
+
+  async function handleCreateUser() {
+    if (!newUserName.trim() || !newUserEmail.trim()) return;
+    setNewUserLoading(true);
+    try {
+      await createUser.mutateAsync({ data: { name: newUserName.trim(), email: newUserEmail.trim(), systemRole: newUserRole } });
+      toast({ title: "Bruker opprettet", description: `${newUserName} er lagt til. De kan nå logge inn med ${newUserEmail}.` });
+      setNewUserOpen(false);
+      refetchUsers();
+    } catch {
+      toast({ title: "Kunne ikke opprette bruker", description: "Sjekk at e-postadressen ikke allerede er i bruk.", variant: "destructive" });
+    } finally {
+      setNewUserLoading(false);
     }
   }
 
@@ -87,7 +129,7 @@ export default function AdminPage() {
             <h1 className="text-3xl font-bold tracking-tight">Admin</h1>
             <p className="text-muted-foreground">Brukere og systemadministrasjon.</p>
           </div>
-          <Button onClick={() => setLocation("/admin/users/new")}>
+          <Button onClick={openNewUser}>
             <Plus className="mr-2 h-4 w-4" /> Ny bruker
           </Button>
         </div>
@@ -200,6 +242,61 @@ export default function AdminPage() {
           </Table>
         </div>
       </div>
+
+      {/* ─── Ny bruker dialog ─── */}
+      <Dialog open={newUserOpen} onOpenChange={setNewUserOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Legg til ny bruker</DialogTitle>
+            <DialogDescription>
+              Opprett en brukerkonto. Brukeren kan deretter logge inn med sin Clerk-konto koblet til denne e-postadressen.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="new-user-name">Navn</Label>
+              <Input
+                id="new-user-name"
+                placeholder="Ola Nordmann"
+                value={newUserName}
+                onChange={(e) => setNewUserName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="new-user-email">E-postadresse</Label>
+              <Input
+                id="new-user-email"
+                type="email"
+                placeholder="ola@bedrift.no"
+                value={newUserEmail}
+                onChange={(e) => setNewUserEmail(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="new-user-role">Rolle</Label>
+              <Select value={newUserRole} onValueChange={(v) => setNewUserRole(v as "user" | "admin")}>
+                <SelectTrigger id="new-user-role">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="user">Bruker</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setNewUserOpen(false)}>Avbryt</Button>
+            <Button
+              onClick={handleCreateUser}
+              disabled={newUserLoading || !newUserName.trim() || !newUserEmail.trim()}
+            >
+              {newUserLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Opprett bruker
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }

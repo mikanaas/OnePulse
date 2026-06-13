@@ -26,6 +26,22 @@ router.post("/users/me/sync", async (req, res) => {
       .set({ name: name ?? byClerkId.name, email: email ?? byClerkId.email, lastLogin: new Date() })
       .where(eq(usersTable.clerkId, auth.userId))
       .returning();
+
+    // Auto-promote to admin if no real (non-seed) admins exist
+    if (updated.systemRole !== "admin") {
+      const [realAdmin] = await db.select({ id: usersTable.id })
+        .from(usersTable)
+        .where(and(eq(usersTable.systemRole, "admin"), not(like(usersTable.clerkId, "seed_%"))))
+        .limit(1);
+      if (!realAdmin) {
+        const [promoted] = await db.update(usersTable)
+          .set({ systemRole: "admin" })
+          .where(eq(usersTable.id, updated.id))
+          .returning();
+        res.json(promoted);
+        return;
+      }
+    }
     res.json(updated);
     return;
   }
