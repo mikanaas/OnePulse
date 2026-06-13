@@ -3,9 +3,9 @@ import { QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { useSyncMe } from "@workspace/api-client-react";
+import { useSyncMe, setAuthTokenGetter } from "@workspace/api-client-react";
 import { useEffect, useRef } from "react";
-import { ClerkProvider, SignIn, SignUp, Show, useClerk, useUser } from "@clerk/react";
+import { ClerkProvider, SignIn, SignUp, Show, useClerk, useUser, useAuth } from "@clerk/react";
 
 import { publishableKeyFromHost } from "@clerk/react/internal";
 
@@ -59,6 +59,15 @@ function SignUpPage() {
       <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} />
     </div>
   );
+}
+
+function ClerkTokenSetter() {
+  const { getToken } = useAuth();
+  useEffect(() => {
+    setAuthTokenGetter(() => getToken());
+    return () => setAuthTokenGetter(null);
+  }, [getToken]);
+  return null;
 }
 
 function ClerkQueryClientCacheInvalidator() {
@@ -158,6 +167,7 @@ function ClerkProviderWithRoutes() {
       routerReplace={(to) => setLocation(stripBase(to), { replace: true })}
     >
       <QueryClientProvider client={queryClient}>
+        <ClerkTokenSetter />
         <ClerkQueryClientCacheInvalidator />
         <SyncUser />
         <Switch>
