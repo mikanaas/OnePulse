@@ -238,6 +238,7 @@ export interface ProjectUpdate {
   name?: string;
   description?: string;
   businessUnit?: string;
+  ownerId?: number;
   status?: ProjectUpdateStatus;
   startDate?: string;
   plannedEndDate?: string;

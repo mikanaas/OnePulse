@@ -235,6 +235,7 @@ export const UpdateProjectBody = zod.object({
   "name": zod.string().min(1).optional(),
   "description": zod.string().optional(),
   "businessUnit": zod.string().optional(),
+  "ownerId": zod.number().optional(),
   "status": zod.enum(['ide', 'pagaende', 'pause', 'fullfort', 'avsluttet']).optional(),
   "startDate": zod.string().optional(),
   "plannedEndDate": zod.string().optional(),

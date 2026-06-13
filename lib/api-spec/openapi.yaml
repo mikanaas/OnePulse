@@ -1266,6 +1266,8 @@ components:
           type: string
         businessUnit:
           type: string
+        ownerId:
+          type: integer
         status:
           type: string
           enum: [ide, pagaende, pause, fullfort, avsluttet]
