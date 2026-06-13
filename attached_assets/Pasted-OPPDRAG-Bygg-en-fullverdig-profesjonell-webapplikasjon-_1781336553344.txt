@@ -1,0 +1,194 @@
+OPPDRAG
+
+Bygg en fullverdig, profesjonell webapplikasjon for prosjektstyring og effektmåling av digitaliserings- og AI-initiativer i et norsk konsern (OneCo). Verktøyet skal brukes av et lite team (5–20 personer) som arbeider med flere parallelle prosjekter på tvers av konsernets forretningsenheter. Kvalitetsnivået skal være på linje med moderne SaaS-produkter som Linear, Notion eller Monday.com – elegant, rolig, og svært intuitivt, ikke "Replit-prototype"-følelse.
+
+Svar med en plan for arkitektur og datamodell før du begynner å kode, slik at jeg kan godkjenne strukturen.
+
+
+TEKNISK STACK
+
+
+Frontend: React + TypeScript, Tailwind CSS
+Backend: Node.js/Express eller Replit sin foretrukne fullstack-løsning
+Database: PostgreSQL (persistent, ikke in-memory)
+Autentisering: e-post/passord med sesjonshåndtering, forberedt for senere SSO/Entra ID-integrasjon
+Responsivt design – skal fungere godt på mobil (brukes ofte på bussen/underveis), ikke bare desktop
+
+
+
+SIKKERHET OG DATABEHANDLING
+
+Dette systemet vil inneholde forretningssensitiv informasjon (kostnader, besparelser, interne vurderinger). Implementer følgende som standard:
+
+
+Autentisering: passord skal hashes med bcrypt (eller tilsvarende), aldri lagres i klartekst. Sesjoner skal ha rimelig utløpstid og kunne avsluttes manuelt (logg ut alle enheter).
+Autorisasjon på server-siden: alle rolle- og tilgangskontroller (admin/prosjektleder/medlem, hvem ser hvilke prosjekter) skal håndheves i backend/API, ikke kun skjules i frontend. Et API-kall skal aldri returnere data brukeren ikke har rett til å se, uavhengig av hva UI viser.
+Hemmeligheter: API-nøkler (Anthropic API, e-posttjeneste, database) skal kun ligge i Replit Secrets/miljøvariabler, aldri i kildekode eller committet til repo.
+Kryptering: all trafikk skal gå over HTTPS. Data i database skal være beskyttet av Replits standard kryptering-at-rest.
+Inputvalidering: valider og saner all input på server-siden for å forhindre SQL-injection og XSS – bruk parameteriserte databasekall (ORM som Drizzle/Prisma anbefales).
+Audit-logg: viktige handlinger (opprettelse/sletting av prosjekter, endring av brukerroller, tilgangsendringer) skal logges med hvem/når/hva, slik vi allerede har i admin-aktivitetsloggen.
+Persondata: systemet vil inneholde navn og e-post på ansatte. Begrens dette til det som er nødvendig (navn + e-post er tilstrekkelig, ikke flere persondatafelter enn nødvendig), og legg til en enkel "slett bruker"-funksjon som anonymiserer/fjerner persondata ved behov (GDPR-hensyn).
+
+
+Viktig forbehold om sikkerhetsnivå
+
+Du ber om "høyest mulig sikkerhetsnivå" – det er viktig å være ærlig om hva som er realistisk i en Replit-hostet løsning versus et system driftet i OneCo sin egen IT-infrastruktur (Azure/Entra ID, sentral logging, formelle pentester osv.). Punktene over representerer god praksis for app-nivå-sikkerhet, men gir ikke samme garantier som et system driftet under konsernets IT-avdeling.
+
+Anbefaling: behandle dette som en pilot med begrenset, navngitt brukergruppe (de 5–20 personene som faktisk skal bruke det), registrert under vibecoding-prosedyren slik vi har diskutert. Når verktøyet har vist sin verdi, bør veien videre til en permanent løsning inkludere en vurdering fra IT/sikkerhet om hosting, datalagringssted (EU/Norge for GDPR) og eventuell SSO-integrasjon med Entra ID – ikke noe Replit-prompten alene kan garantere.
+
+
+Hovedfarge: dyp lilla #4A1F55 (OneCo-merkevarefarge), brukt som primærfarge i navigasjon, knapper, grafer og aksenter
+Komplementærpalett: lyse, lune nøytrale bakgrunnsfarger (off-white/lys grå), med god kontrast for lesbarhet
+Typografi: ren, moderne sans-serif (f.eks. Inter eller lignende), klart hierarki mellom titler, undertitler og brødtekst
+Logo: OneCo-logoen (lastes opp som bildefil i prosjektets assets/public-mappe, f.eks. oneco-logo.webp) skal vises øverst til venstre i navigasjonsmenyen, i en bredde på ca. 140–160px med bevart størrelsesforhold. Logoen består av et lilla "OC"-symbol (to sammenkoblede ringer, samme lilla som primærfargen #4A1F55) og ordet "OneCo" i mørk antrasitt/nesten-svart sans-serif. Sørg for god luft rundt logoen og at den vises tydelig mot bakgrunnsfargen i navigasjonen (lys bakgrunn). Bruk fargene og formen i logoen som referanse for ikoner og grafiske elementer ellers i appen – f.eks. kan de avrundede, sammenkoblede ringformene inspirere subtile dekorative detaljer (uten å overdrive).
+Generell stil: mye luft/whitespace, avrundede hjørner (subtile, ikke "leketøy"-aktige), myke skygger, ingen unødvendige fargeeksplosjoner – fargen #4A1F55 skal brukes selektivt for å skape fokus, ikke flate alt
+Grafer: bruk gradient/skygge av #4A1F55 + 1-2 komplementærfarger for å skille datatyper, konsistent fargekoding på tvers av hele appen (f.eks. samme farge for "fullført" overalt)
+Tomme tilstander (ingen prosjekter, ingen oppgaver) skal ha ordentlig design – ikke bare blank side, men en hjelpsom melding + call-to-action
+
+
+
+BRUKERROLLER OG ADMIN
+
+Tre roller:
+
+
+Administrator – full tilgang til alt, kan administrere brukere, opprette/redigere/slette prosjekter, sette tilganger
+Prosjektleder – kan opprette og administrere egne prosjekter, invitere medlemmer til sine prosjekter, redigere alt innhold i sine prosjekter
+Teammedlem – kan se og oppdatere oppgaver de er tildelt, legge til kommentarer/dokumentasjon i prosjekter de er medlem av, se prosjektets dashbord
+
+
+En person kan ha ulike roller i ulike prosjekter (f.eks. prosjektleder i ett, teammedlem i et annet).
+
+Admin-panel skal inneholde:
+
+
+Brukerliste med rolle, e-post, hvilke prosjekter de er med i, sist aktiv
+Mulighet for å opprette nye brukere, deaktivere/reaktivere brukere
+Mulighet for å endre roller og prosjekttilganger
+Enkel aktivitetslogg (hvem gjorde hva, når) – for transparens og sporbarhet
+
+
+
+PROSJEKTSTRUKTUR
+
+Hvert prosjekt skal ha:
+
+
+Grunnleggende informasjon: navn, beskrivelse, forretningsenhet/avdeling (dropdown med OneCos enheter), eier/prosjektleder, status (Idé / Pågående / Pause / Fullført / Avsluttet), startdato, planlagt sluttdato
+Målsetting: tekstfelt for prosjektets mål, og et strukturert felt for "forventet besparelse" (kr/år eller timer/år – velg type) og "forventet effekt-dato"
+Teammedlemmer: liste med roller i prosjektet, mulighet for å legge til/fjerne
+Oppgaver/tiltak (se eget avsnitt under)
+Dialog/logg: en kronologisk feed for kommentarer, avtaler, beslutninger og notater – som en enkel "aktivitetsstrøm" per prosjekt, med tidsstempel og forfatter. Skal kunne filtreres på type (kommentar / avtale / beslutning / milepæl)
+Effektregistrering: et eget område hvor man logger faktisk realisert effekt over tid. Hver oppføring skal ha: dato, beskrivelse av tiltaket, verdi (kr eller timer), type (engangsbesparelse / løpende årlig besparelse), og sikkerhetsnivå på estimatet (Lav/Middels/Høy). I tillegg skal det være mulig å registrere kostnader knyttet til prosjektet (lisenser, konsulenttimer, etc.), slik at nettoeffekt (besparelse minus kostnad) kan vises – ikke bare brutto besparelse. Dette akkumuleres og vises i dashbordet som "akkumulert besparelse til dags dato" vs. "målsetting"
+Dokumenter/lenker: mulighet for å lime inn lenker til eksterne dokumenter (f.eks. Google Drive, SharePoint)
+
+
+
+OPPGAVER (TASKS)
+
+Følg "minimum input / avviksbasert"-filosofi – det skal være lavest mulig friksjon å registrere noe:
+
+
+Tittel, beskrivelse, ansvarlig person, status (Ikke startet / Pågår / Venter / Fullført), forfallsdato, prioritet (Lav/Middels/Høy)
+Mulighet for kommentarer på hver oppgave
+Kanban-visning (drag-and-drop mellom statuskolonner) OG listevisning – bruker kan velge
+Filtrering på ansvarlig, status, prioritet, forfallsdato
+Varsling/markering av forfalte oppgaver (visuelt, f.eks. rød tekst)
+
+
+
+DASHBORD PER PROSJEKT
+
+Hver prosjektside skal ha et dashbord på toppen med:
+
+
+Statuskort: total fremdrift i % (basert på fullførte vs. totale oppgaver), antall dager til/forbi planlagt sluttdato, antall aktive teammedlemmer
+Besparelseskort: stor, tydelig visning av "akkumulert besparelse" vs. "målsetting" – gjerne som en fremdriftsbar/gauge, med tydelig tall i kr eller timer
+Tidslinje/graf som viser akkumulert besparelse over tid (linjediagram), med målsettingslinjen som referanse
+Oppgavefordeling: enkelt sektordiagram/stolpediagram som viser oppgaver per status
+Siste aktivitet fra dialog/logg (de 5 siste oppføringene)
+
+
+
+OVERORDNET DASHBORD (PORTEFØLJEOVERSIKT)
+
+Dette er hovedsiden i appen og skal vise:
+
+
+Toppnøkkeltall (store tall i kort): totalt antall prosjekter, antall fullførte, antall pågående, antall fremtidige/idé-stadiet
+Total estimert besparelse for alle prosjekter samlet (kr og/eller timer), vs. realisert besparelse til dags dato – som et fremdriftselement
+Personer involvert totalt (unike teammedlemmer over alle prosjekter)
+Timeforbruk: hvis time-logging er for ambisiøst i v1, kan dette baseres på et enkelt estimert timeforbruk-felt per prosjekt som summeres – men bygg datamodellen slik at faktisk timeregistrering kan legges til senere
+Graf 1 – Prosjekter per status: stolpe- eller sektordiagram (Idé/Pågående/Pause/Fullført/Avsluttet)
+Graf 2 – Prosjekter per forretningsenhet: stolpediagram
+Graf 3 – Besparelse per prosjekt: horisontal stolpediagram, sortert størst til minst, viser realisert vs. målsetting per prosjekt
+Graf 4 – Besparelse over tid (alle prosjekter samlet): linjediagram, akkumulert
+
+
+Drill-down (viktig funksjon):
+
+Alle elementer i grafene (stolper, sektorer, linjepunkter) skal være klikkbare og navigere brukeren direkte til det relevante prosjektets detaljside. Eksempel: klikk på "Besparelse per prosjekt"-stolpen for "Tidsregistreringssystem" → naviger til prosjektsiden for det prosjektet. Klikk på en sektor i "Prosjekter per status" → naviger til en filtrert prosjektliste som viser kun prosjekter med den statusen.
+
+
+AI-FUNKSJONER (KJERNEN I "STATE OF THE ART")
+
+Dette er funksjonene som skal demonstrere AI-kapasitet i praksis, ikke bare være et nytt prosjektverktøy. Bruk Anthropic Claude API (Claude Sonnet) til disse funksjonene. API-nøkkel håndteres via miljøvariabler/secrets i Replit, aldri hardkodet i koden.
+
+
+Automatisk statusoppsummering per prosjekt: en knapp ("Generer statusoppdatering") som sender prosjektets aktivitetslogg, oppgavestatus og effektregistreringer til AI-API-et, og returnerer en kort, lesbar oppsummering på norsk – f.eks. "Denne uken: 3 oppgaver fullført, 1 forsinket. Realisert besparelse: 45.000 kr. Status: i henhold til plan." Oppsummeringen lagres som en oppføring i aktivitetsloggen med tidsstempel.
+Porteføljespørringer ("Spør om porteføljen"): et enkelt chat-grensesnitt (kan ligge som et sidepanel eller modal) der brukeren kan stille spørsmål i fritekst, f.eks. "Hvilke prosjekter ligger bak skjema?" eller "Hva er samlet besparelse for forretningsenhet X?". Backend henter relevante data fra databasen og sender dette som kontekst til AI-API-et sammen med spørsmålet, og returnerer et svar.
+Naturlig språk-registrering av effekt: et tekstfelt der brukeren skriver f.eks. "Vi sparte ca. 12 timer denne uken på automatisert rapportering, ganske sikkert tall". AI-API-et strukturerer dette til en effekt-oppføring (verdi, enhet, sikkerhetsnivå, beskrivelse) som brukeren kan godkjenne/redigere før lagring – reduserer friksjon ytterligere i tråd med "minimum input"-filosofien.
+
+
+
+RAPPORTERING OG EKSPORT
+
+
+Ledelsesrapport (PDF/PPTX): ett klikk genererer en presentasjonsklar oppsummering av hele porteføljen eller et enkelt prosjekt – nøkkeltall, grafer og AI-generert oppsummering, med OneCo-branding (logo + #4A1F55). Bruk et bibliotek som kan generere PDF eller PPTX server-side.
+Eksport til Excel: nøkkeltall og rådata (prosjekter, effektregistreringer) kan eksporteres til .xlsx for videre bruk i økonomiavdelingen.
+Planlagt e-postdigest (kan være enkel i v1): mulighet for å sende en oppsummering på e-post til en valgt mottakerliste, manuelt eller på en enkel tidsplan.
+
+
+Venstre sidemeny (kollapsbar på mobil til hamburger-meny):
+
+
+Portefølje-dashbord (hovedside)
+Prosjekter (liste over alle prosjekter brukeren har tilgang til, med søk og filtrering)
+Mitt arbeid (oppgaver tildelt meg, på tvers av alle prosjekter)
+Admin (kun synlig for administratorer)
+
+
+
+DATAMODELL – FORSLAG TIL HOVEDTABELLER
+
+Lag følgende som utgangspunkt (juster gjerne basert på beste praksis):
+
+
+users (id, navn, e-post, passord-hash, rolle, aktiv, sist innlogget)
+projects (id, navn, beskrivelse, forretningsenhet, status, eier_id, startdato, planlagt_sluttdato, mål_besparelse_verdi, mål_besparelse_enhet, mål_dato)
+project_members (project_id, user_id, rolle_i_prosjekt)
+tasks (id, project_id, tittel, beskrivelse, ansvarlig_id, status, prioritet, forfallsdato, opprettet_dato)
+task_comments (id, task_id, user_id, tekst, tidsstempel)
+activity_log (id, project_id, user_id, type, innhold, tidsstempel)
+effect_entries (id, project_id, dato, beskrivelse, verdi, enhet, type [engangs/løpende], sikkerhetsnivå [lav/middels/høy], registrert_av)
+cost_entries (id, project_id, dato, beskrivelse, verdi, registrert_av)
+
+
+
+UTVIKLINGSREKKEFØLGE (FORESLÅTT)
+
+
+Datamodell + autentisering (med sikkerhetspraksis fra eget avsnitt) + grunnleggende rollestruktur
+Admin-panel (brukeradministrasjon)
+Opprette/redigere prosjekter + medlemshåndtering
+Oppgavehåndtering (liste + kanban)
+Dialog/aktivitetslogg per prosjekt
+Effektregistrering (inkl. kostnad, type og sikkerhetsnivå) + prosjekt-dashbord med besparelseskort og grafer
+Overordnet portefølje-dashbord med alle grafer
+Drill-down-navigasjon fra grafer
+AI-funksjoner: statusoppsummering, porteføljespørringer, naturlig språk-registrering
+Rapportering og eksport (PDF/PPTX-ledelsesrapport, Excel-eksport)
+Visuell finpussing: branding, tomme tilstander, mobilresponsivitet, mikro-animasjoner
+
+
+Start med punkt 1 og vis meg datamodellen og en enkel wireframe-skisse av navigasjonen før du går videre.
