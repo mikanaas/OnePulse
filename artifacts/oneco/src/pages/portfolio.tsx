@@ -22,10 +22,10 @@ function StatCard({ title, value, icon: Icon, description, loading }: { title: s
         {loading ? (
           <Skeleton className="h-8 w-24" />
         ) : (
-          <div className="text-xl font-bold leading-tight break-words">{value}</div>
+          <div className="text-lg font-bold leading-tight whitespace-nowrap overflow-hidden text-ellipsis">{value}</div>
         )}
         {description && (
-          <p className="text-xs text-muted-foreground mt-1 break-words">
+          <p className="text-xs text-muted-foreground mt-1">
             {description}
           </p>
         )}
