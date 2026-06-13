@@ -4,7 +4,7 @@ import { useGetProject } from "@workspace/api-client-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { statusMap } from "@/lib/format";
-import { Loader2, ArrowLeft } from "lucide-react";
+import { Loader2, ArrowLeft, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import { DashboardTab } from "./project/dashboard-tab";
@@ -57,6 +57,10 @@ export default function ProjectDetail() {
             </div>
             <p className="text-muted-foreground max-w-2xl">{project.description}</p>
           </div>
+          <Button variant="outline" size="sm" className="gap-2 shrink-0" onClick={() => setLocation(`/projects/${project.id}/rapport`)}>
+            <FileText className="h-4 w-4" />
+            Rapport
+          </Button>
         </div>
 
         <Tabs defaultValue="dashboard" className="w-full">

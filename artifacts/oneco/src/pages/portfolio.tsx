@@ -3,8 +3,9 @@ import { AppLayout } from "@/components/layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency, formatNumber, statusMap } from "@/lib/format";
 import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip as RechartsTooltip, XAxis, YAxis, Cell } from "recharts";
-import { Activity, Briefcase, CheckCircle, Lightbulb, Users, TrendingUp, DollarSign } from "lucide-react";
+import { Activity, Briefcase, CheckCircle, Lightbulb, Users, TrendingUp, DollarSign, FileText } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
 
 const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
@@ -51,9 +52,15 @@ export default function PortfolioPage() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Porteføljeoversikt</h1>
-          <p className="text-muted-foreground">Oversikt over alle digitaliserings- og AI-prosjekter.</p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Porteføljeoversikt</h1>
+            <p className="text-muted-foreground">Oversikt over alle digitaliserings- og AI-prosjekter.</p>
+          </div>
+          <Button variant="outline" size="sm" className="gap-2 shrink-0" onClick={() => setLocation("/rapport")}>
+            <FileText className="h-4 w-4" />
+            Rapport
+          </Button>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
