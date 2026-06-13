@@ -172,10 +172,24 @@ function SectionTitle({ children, count }: { children: React.ReactNode; count?: 
 export default function AiAnalysisPage() {
   const analyze = useAnalyzePortfolio();
   const [result, setResult] = useState<PortfolioAnalysis | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const handleRun = () => {
+    setErrorMsg(null);
     analyze.mutate(undefined, {
-      onSuccess: (data) => setResult(data),
+      onSuccess: (data) => {
+        // Server returns 200 even on AI failure — check for error field
+        if ((data as { error?: string }).error) {
+          setErrorMsg(data.overallHealth?.summary ?? "AI-tjenesten er ikke tilgjengelig.");
+        } else {
+          setResult(data);
+        }
+      },
+      onError: (err) => {
+        setErrorMsg(
+          (err as { message?: string }).message ?? "Noe gikk galt. Prøv igjen."
+        );
+      },
     });
   };
 
@@ -218,6 +232,17 @@ export default function AiAnalysisPage() {
             )}
           </Button>
         </div>
+
+        {/* Error banner */}
+        {errorMsg && !analyze.isPending && (
+          <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold text-red-800 text-sm">Analyse mislyktes</p>
+              <p className="text-sm text-red-700 mt-0.5">{errorMsg}</p>
+            </div>
+          </div>
+        )}
 
         {/* Loading state */}
         {analyze.isPending && (

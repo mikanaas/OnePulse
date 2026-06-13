@@ -266,11 +266,12 @@ Gi minst 3 suksessfaktorer, 3 svakhetsmønstre, 3 muligheter og 4 anbefalinger. 
     res.json(parsed);
   } catch (err) {
     logger.error({ err }, "AI portfolio analysis failed");
-    // Graceful fallback
-    res.status(500).json({
+    // Return 200 with a graceful fallback so the client can display a friendly message
+    // instead of crashing on an HTTP error status.
+    res.json({
       error: "AI not available",
       generatedAt: new Date().toISOString(),
-      overallHealth: { score: 0, label: "Ukjent", summary: "AI-tjenesten er ikke tilgjengelig for øyeblikket." },
+      overallHealth: { score: 0, label: "Ukjent", summary: "AI-tjenesten er ikke tilgjengelig for øyeblikket. Sjekk at ANTHROPIC_API_KEY er konfigurert." },
       successFactors: [],
       failurePatterns: [],
       opportunities: [],
