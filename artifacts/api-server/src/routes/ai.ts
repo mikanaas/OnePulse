@@ -151,7 +151,8 @@ Returner KUN gyldig JSON, ingen annen tekst.`;
 });
 
 // POST /api/ai/portfolio-analysis
-router.post("/ai/portfolio-analysis", requireAuth, async (_req, res) => {
+router.post("/ai/portfolio-analysis", requireAuth, async (req, res) => {
+  req.log.info("portfolio-analysis: handler entered");
   const projects = await db.select().from(projectsTable);
   const allTasks = await db.select().from(tasksTable);
   const allEffects = await db.select().from(effectEntriesTable);
@@ -265,13 +266,13 @@ Gi minst 3 suksessfaktorer, 3 svakhetsmønstre, 3 muligheter og 4 anbefalinger. 
     parsed.generatedAt = parsed.generatedAt || new Date().toISOString();
     res.json(parsed);
   } catch (err) {
-    logger.error({ err }, "AI portfolio analysis failed");
-    // Return 200 with a graceful fallback so the client can display a friendly message
-    // instead of crashing on an HTTP error status.
+    const errMsg = err instanceof Error ? err.message : String(err);
+    req.log.error({ err, errMsg }, "AI portfolio analysis failed");
     res.json({
       error: "AI not available",
+      errorDetail: errMsg,
       generatedAt: new Date().toISOString(),
-      overallHealth: { score: 0, label: "Ukjent", summary: "AI-tjenesten er ikke tilgjengelig for øyeblikket. Sjekk at ANTHROPIC_API_KEY er konfigurert." },
+      overallHealth: { score: 0, label: "Ukjent", summary: `AI-feil: ${errMsg}` },
       successFactors: [],
       failurePatterns: [],
       opportunities: [],
