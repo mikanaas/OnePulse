@@ -761,6 +761,139 @@ export interface PortfolioAnalysis {
 /**
  * @nullable
  */
+export type ProjectGovernanceRiskClassification = typeof ProjectGovernanceRiskClassification[keyof typeof ProjectGovernanceRiskClassification] | null;
+
+
+export const ProjectGovernanceRiskClassification = {
+  lav: 'lav',
+  middels: 'middels',
+  høy: 'høy',
+} as const;
+
+/**
+ * @nullable
+ */
+export type ProjectGovernanceGovernanceStatus = typeof ProjectGovernanceGovernanceStatus[keyof typeof ProjectGovernanceGovernanceStatus] | null;
+
+
+export const ProjectGovernanceGovernanceStatus = {
+  under_vurdering: 'under_vurdering',
+  godkjent_pilot: 'godkjent_pilot',
+  godkjent_produksjon: 'godkjent_produksjon',
+  amnesti: 'amnesti',
+  avvikling: 'avvikling',
+} as const;
+
+export interface ProjectGovernance {
+  projectId: number;
+  /** @nullable */
+  projectOwner?: string | null;
+  /** @nullable */
+  techOwner?: string | null;
+  /** @nullable */
+  backupContact?: string | null;
+  /** @nullable */
+  lastReviewedAt?: string | null;
+  /** @nullable */
+  nextReviewAt?: string | null;
+  /** @nullable */
+  problemDescription?: string | null;
+  /** @nullable */
+  alternativesConsidered?: string | null;
+  /** @nullable */
+  strategicGoalLink?: string | null;
+  /** @nullable */
+  platformTools?: string | null;
+  /** @nullable */
+  systemIntegrations?: string | null;
+  /** @nullable */
+  projectDependencies?: string | null;
+  /** @nullable */
+  dataTypes?: string | null;
+  /** @nullable */
+  aiVendor?: string | null;
+  /** @nullable */
+  dataGeography?: string | null;
+  /** @nullable */
+  riskClassification?: ProjectGovernanceRiskClassification;
+  /** @nullable */
+  humanInLoop?: string | null;
+  /** @nullable */
+  governanceStatus?: ProjectGovernanceGovernanceStatus;
+  /** @nullable */
+  dpiaLink?: string | null;
+  /** @nullable */
+  updatedAt?: string | null;
+}
+
+/**
+ * @nullable
+ */
+export type ProjectGovernanceInputRiskClassification = typeof ProjectGovernanceInputRiskClassification[keyof typeof ProjectGovernanceInputRiskClassification] | null;
+
+
+export const ProjectGovernanceInputRiskClassification = {
+  lav: 'lav',
+  middels: 'middels',
+  høy: 'høy',
+} as const;
+
+/**
+ * @nullable
+ */
+export type ProjectGovernanceInputGovernanceStatus = typeof ProjectGovernanceInputGovernanceStatus[keyof typeof ProjectGovernanceInputGovernanceStatus] | null;
+
+
+export const ProjectGovernanceInputGovernanceStatus = {
+  under_vurdering: 'under_vurdering',
+  godkjent_pilot: 'godkjent_pilot',
+  godkjent_produksjon: 'godkjent_produksjon',
+  amnesti: 'amnesti',
+  avvikling: 'avvikling',
+} as const;
+
+export interface ProjectGovernanceInput {
+  /** @nullable */
+  projectOwner?: string | null;
+  /** @nullable */
+  techOwner?: string | null;
+  /** @nullable */
+  backupContact?: string | null;
+  /** @nullable */
+  lastReviewedAt?: string | null;
+  /** @nullable */
+  nextReviewAt?: string | null;
+  /** @nullable */
+  problemDescription?: string | null;
+  /** @nullable */
+  alternativesConsidered?: string | null;
+  /** @nullable */
+  strategicGoalLink?: string | null;
+  /** @nullable */
+  platformTools?: string | null;
+  /** @nullable */
+  systemIntegrations?: string | null;
+  /** @nullable */
+  projectDependencies?: string | null;
+  /** @nullable */
+  dataTypes?: string | null;
+  /** @nullable */
+  aiVendor?: string | null;
+  /** @nullable */
+  dataGeography?: string | null;
+  /** @nullable */
+  riskClassification?: ProjectGovernanceInputRiskClassification;
+  /** @nullable */
+  humanInLoop?: string | null;
+  /** @nullable */
+  governanceStatus?: ProjectGovernanceInputGovernanceStatus;
+  /** @nullable */
+  dpiaLink?: string | null;
+}
+
+/**
+ * @nullable
+ */
 export type AuditEntryDetails = { [key: string]: unknown } | null;
 
 export interface AuditEntry {

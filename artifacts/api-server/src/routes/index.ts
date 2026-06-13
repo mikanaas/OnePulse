@@ -11,6 +11,7 @@ import aiRouter from "./ai";
 import reportsRouter from "./reports";
 import auditRouter from "./audit";
 import adminRouter from "./admin";
+import governanceRouter from "./governance";
 
 const router: IRouter = Router();
 
@@ -26,5 +27,6 @@ router.use(aiRouter);
 router.use(reportsRouter);
 router.use(auditRouter);
 router.use(adminRouter);
+router.use(governanceRouter);
 
 export default router;

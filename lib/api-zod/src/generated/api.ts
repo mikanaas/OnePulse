@@ -729,6 +729,89 @@ export const DeleteLinkParams = zod.object({
 
 
 /**
+ * @summary Get governance data for a project
+ */
+export const GetGovernanceParams = zod.object({
+  "projectId": zod.coerce.number()
+})
+
+export const GetGovernanceResponse = zod.object({
+  "projectId": zod.number(),
+  "projectOwner": zod.string().nullish(),
+  "techOwner": zod.string().nullish(),
+  "backupContact": zod.string().nullish(),
+  "lastReviewedAt": zod.string().nullish(),
+  "nextReviewAt": zod.string().nullish(),
+  "problemDescription": zod.string().nullish(),
+  "alternativesConsidered": zod.string().nullish(),
+  "strategicGoalLink": zod.string().nullish(),
+  "platformTools": zod.string().nullish(),
+  "systemIntegrations": zod.string().nullish(),
+  "projectDependencies": zod.string().nullish(),
+  "dataTypes": zod.string().nullish(),
+  "aiVendor": zod.string().nullish(),
+  "dataGeography": zod.string().nullish(),
+  "riskClassification": zod.union([zod.literal('lav'),zod.literal('middels'),zod.literal('høy'),zod.literal(null)]).nullish(),
+  "humanInLoop": zod.string().nullish(),
+  "governanceStatus": zod.union([zod.literal('under_vurdering'),zod.literal('godkjent_pilot'),zod.literal('godkjent_produksjon'),zod.literal('amnesti'),zod.literal('avvikling'),zod.literal(null)]).nullish(),
+  "dpiaLink": zod.string().nullish(),
+  "updatedAt": zod.string().nullish()
+})
+
+
+/**
+ * @summary Upsert governance data for a project
+ */
+export const UpsertGovernanceParams = zod.object({
+  "projectId": zod.coerce.number()
+})
+
+export const UpsertGovernanceBody = zod.object({
+  "projectOwner": zod.string().nullish(),
+  "techOwner": zod.string().nullish(),
+  "backupContact": zod.string().nullish(),
+  "lastReviewedAt": zod.string().nullish(),
+  "nextReviewAt": zod.string().nullish(),
+  "problemDescription": zod.string().nullish(),
+  "alternativesConsidered": zod.string().nullish(),
+  "strategicGoalLink": zod.string().nullish(),
+  "platformTools": zod.string().nullish(),
+  "systemIntegrations": zod.string().nullish(),
+  "projectDependencies": zod.string().nullish(),
+  "dataTypes": zod.string().nullish(),
+  "aiVendor": zod.string().nullish(),
+  "dataGeography": zod.string().nullish(),
+  "riskClassification": zod.union([zod.literal('lav'),zod.literal('middels'),zod.literal('høy'),zod.literal(null)]).nullish(),
+  "humanInLoop": zod.string().nullish(),
+  "governanceStatus": zod.union([zod.literal('under_vurdering'),zod.literal('godkjent_pilot'),zod.literal('godkjent_produksjon'),zod.literal('amnesti'),zod.literal('avvikling'),zod.literal(null)]).nullish(),
+  "dpiaLink": zod.string().nullish()
+})
+
+export const UpsertGovernanceResponse = zod.object({
+  "projectId": zod.number(),
+  "projectOwner": zod.string().nullish(),
+  "techOwner": zod.string().nullish(),
+  "backupContact": zod.string().nullish(),
+  "lastReviewedAt": zod.string().nullish(),
+  "nextReviewAt": zod.string().nullish(),
+  "problemDescription": zod.string().nullish(),
+  "alternativesConsidered": zod.string().nullish(),
+  "strategicGoalLink": zod.string().nullish(),
+  "platformTools": zod.string().nullish(),
+  "systemIntegrations": zod.string().nullish(),
+  "projectDependencies": zod.string().nullish(),
+  "dataTypes": zod.string().nullish(),
+  "aiVendor": zod.string().nullish(),
+  "dataGeography": zod.string().nullish(),
+  "riskClassification": zod.union([zod.literal('lav'),zod.literal('middels'),zod.literal('høy'),zod.literal(null)]).nullish(),
+  "humanInLoop": zod.string().nullish(),
+  "governanceStatus": zod.union([zod.literal('under_vurdering'),zod.literal('godkjent_pilot'),zod.literal('godkjent_produksjon'),zod.literal('amnesti'),zod.literal('avvikling'),zod.literal(null)]).nullish(),
+  "dpiaLink": zod.string().nullish(),
+  "updatedAt": zod.string().nullish()
+})
+
+
+/**
  * @summary Get top-level portfolio statistics
  */
 export const GetPortfolioStatsResponse = zod.object({

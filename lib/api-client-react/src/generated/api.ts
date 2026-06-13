@@ -44,6 +44,8 @@ import type {
   PortfolioQuery,
   PortfolioStats,
   Project,
+  ProjectGovernance,
+  ProjectGovernanceInput,
   ProjectInput,
   ProjectLink,
   ProjectMember,
@@ -2865,6 +2867,155 @@ export const useDeleteLink = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getDeleteLinkMutationOptions(options));
+    }
+
+export const getGetGovernanceUrl = (projectId: number,) => {
+
+
+
+
+  return `/api/projects/${projectId}/governance`
+}
+
+/**
+ * @summary Get governance data for a project
+ */
+export const getGovernance = async (projectId: number, options?: RequestInit): Promise<ProjectGovernance> => {
+
+  return customFetch<ProjectGovernance>(getGetGovernanceUrl(projectId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetGovernanceQueryKey = (projectId: number,) => {
+    return [
+    `/api/projects/${projectId}/governance`
+    ] as const;
+    }
+
+
+export const getGetGovernanceQueryOptions = <TData = Awaited<ReturnType<typeof getGovernance>>, TError = ErrorType<unknown>>(projectId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getGovernance>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetGovernanceQueryKey(projectId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getGovernance>>> = ({ signal }) => getGovernance(projectId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(projectId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getGovernance>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetGovernanceQueryResult = NonNullable<Awaited<ReturnType<typeof getGovernance>>>
+export type GetGovernanceQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get governance data for a project
+ */
+
+export function useGetGovernance<TData = Awaited<ReturnType<typeof getGovernance>>, TError = ErrorType<unknown>>(
+ projectId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getGovernance>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetGovernanceQueryOptions(projectId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpsertGovernanceUrl = (projectId: number,) => {
+
+
+
+
+  return `/api/projects/${projectId}/governance`
+}
+
+/**
+ * @summary Upsert governance data for a project
+ */
+export const upsertGovernance = async (projectId: number,
+    projectGovernanceInput: ProjectGovernanceInput, options?: RequestInit): Promise<ProjectGovernance> => {
+
+  return customFetch<ProjectGovernance>(getUpsertGovernanceUrl(projectId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      projectGovernanceInput,)
+  }
+);}
+
+
+
+
+export const getUpsertGovernanceMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof upsertGovernance>>, TError,{projectId: number;data: BodyType<ProjectGovernanceInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof upsertGovernance>>, TError,{projectId: number;data: BodyType<ProjectGovernanceInput>}, TContext> => {
+
+const mutationKey = ['upsertGovernance'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof upsertGovernance>>, {projectId: number;data: BodyType<ProjectGovernanceInput>}> = (props) => {
+          const {projectId,data} = props ?? {};
+
+          return  upsertGovernance(projectId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpsertGovernanceMutationResult = NonNullable<Awaited<ReturnType<typeof upsertGovernance>>>
+    export type UpsertGovernanceMutationBody = BodyType<ProjectGovernanceInput>
+    export type UpsertGovernanceMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Upsert governance data for a project
+ */
+export const useUpsertGovernance = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof upsertGovernance>>, TError,{projectId: number;data: BodyType<ProjectGovernanceInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof upsertGovernance>>,
+        TError,
+        {projectId: number;data: BodyType<ProjectGovernanceInput>},
+        TContext
+      > => {
+      return useMutation(getUpsertGovernanceMutationOptions(options));
     }
 
 export const getGetPortfolioStatsUrl = () => {

@@ -12,6 +12,7 @@ import { TasksTab } from "./project/tasks-tab";
 import { ActivityTab } from "./project/activity-tab";
 import { EffectsTab } from "./project/effects-tab";
 import { CostsTab } from "./project/costs-tab";
+import { GovernanceTab } from "./project/governance-tab";
 
 export default function ProjectDetail() {
   const [, setLocation] = useLocation();
@@ -70,6 +71,7 @@ export default function ProjectDetail() {
             <TabsTrigger value="activity" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-12 px-6">Aktivitetslogg</TabsTrigger>
             <TabsTrigger value="effects" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-12 px-6">Effekter</TabsTrigger>
             <TabsTrigger value="costs" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-12 px-6">Kostnader</TabsTrigger>
+            <TabsTrigger value="governance" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-12 px-6">Prosjektinformasjon</TabsTrigger>
           </TabsList>
           
           <TabsContent value="dashboard" className="mt-6 border-none p-0 outline-none">
@@ -86,6 +88,9 @@ export default function ProjectDetail() {
           </TabsContent>
           <TabsContent value="costs" className="mt-6 border-none p-0 outline-none">
              <CostsTab projectId={project.id} />
+          </TabsContent>
+          <TabsContent value="governance" className="mt-6 border-none p-0 outline-none">
+             <GovernanceTab projectId={project.id} />
           </TabsContent>
         </Tabs>
       </div>

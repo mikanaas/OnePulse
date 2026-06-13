@@ -839,6 +839,49 @@ paths:
         "204":
           description: Deleted
 
+  # ─── Project Governance ────────────────────────────────────────────
+  /projects/{projectId}/governance:
+    get:
+      operationId: getGovernance
+      tags: [governance]
+      summary: Get governance data for a project
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Governance data (null fields if not yet filled)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectGovernance"
+    put:
+      operationId: upsertGovernance
+      tags: [governance]
+      summary: Upsert governance data for a project
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProjectGovernanceInput"
+      responses:
+        "200":
+          description: Saved governance data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectGovernance"
+
   # ─── Portfolio Dashboard ───────────────────────────────────────────
   /portfolio/stats:
     get:
@@ -1807,6 +1850,96 @@ components:
           type: string
         weaknesses:
           type: string
+
+    # ─── Governance Schemas ──────────────────────────────────────────
+    ProjectGovernance:
+      type: object
+      required: [projectId]
+      properties:
+        projectId:
+          type: integer
+        projectOwner:
+          type: ["string", "null"]
+        techOwner:
+          type: ["string", "null"]
+        backupContact:
+          type: ["string", "null"]
+        lastReviewedAt:
+          type: ["string", "null"]
+        nextReviewAt:
+          type: ["string", "null"]
+        problemDescription:
+          type: ["string", "null"]
+        alternativesConsidered:
+          type: ["string", "null"]
+        strategicGoalLink:
+          type: ["string", "null"]
+        platformTools:
+          type: ["string", "null"]
+        systemIntegrations:
+          type: ["string", "null"]
+        projectDependencies:
+          type: ["string", "null"]
+        dataTypes:
+          type: ["string", "null"]
+        aiVendor:
+          type: ["string", "null"]
+        dataGeography:
+          type: ["string", "null"]
+        riskClassification:
+          type: ["string", "null"]
+          enum: ["lav", "middels", "høy", null]
+        humanInLoop:
+          type: ["string", "null"]
+        governanceStatus:
+          type: ["string", "null"]
+          enum: ["under_vurdering", "godkjent_pilot", "godkjent_produksjon", "amnesti", "avvikling", null]
+        dpiaLink:
+          type: ["string", "null"]
+        updatedAt:
+          type: ["string", "null"]
+
+    ProjectGovernanceInput:
+      type: object
+      properties:
+        projectOwner:
+          type: ["string", "null"]
+        techOwner:
+          type: ["string", "null"]
+        backupContact:
+          type: ["string", "null"]
+        lastReviewedAt:
+          type: ["string", "null"]
+        nextReviewAt:
+          type: ["string", "null"]
+        problemDescription:
+          type: ["string", "null"]
+        alternativesConsidered:
+          type: ["string", "null"]
+        strategicGoalLink:
+          type: ["string", "null"]
+        platformTools:
+          type: ["string", "null"]
+        systemIntegrations:
+          type: ["string", "null"]
+        projectDependencies:
+          type: ["string", "null"]
+        dataTypes:
+          type: ["string", "null"]
+        aiVendor:
+          type: ["string", "null"]
+        dataGeography:
+          type: ["string", "null"]
+        riskClassification:
+          type: ["string", "null"]
+          enum: ["lav", "middels", "høy", null]
+        humanInLoop:
+          type: ["string", "null"]
+        governanceStatus:
+          type: ["string", "null"]
+          enum: ["under_vurdering", "godkjent_pilot", "godkjent_produksjon", "amnesti", "avvikling", null]
+        dpiaLink:
+          type: ["string", "null"]
 
     # ─── Audit Schemas ───────────────────────────────────────────────
     AuditEntry:

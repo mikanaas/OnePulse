@@ -5,3 +5,4 @@ export * from "./activity";
 export * from "./effects";
 export * from "./links";
 export * from "./audit";
+export * from "./governance";
