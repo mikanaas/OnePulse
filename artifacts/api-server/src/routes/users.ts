@@ -101,8 +101,9 @@ router.get("/users", requireAuth, async (_req, res) => {
 
 // POST /api/users
 router.post("/users", requireAdmin, async (req, res) => {
-  const { clerkId, name, email, systemRole } = req.body as { clerkId: string; name: string; email: string; systemRole?: string };
-  const [user] = await db.insert(usersTable).values({ clerkId, name, email, systemRole: systemRole ?? "user" }).returning();
+  const { clerkId, name, email, systemRole } = req.body as { clerkId?: string; name: string; email: string; systemRole?: string };
+  const resolvedClerkId = clerkId ?? `pending_${crypto.randomUUID()}`;
+  const [user] = await db.insert(usersTable).values({ clerkId: resolvedClerkId, name, email, systemRole: systemRole ?? "user" }).returning();
   res.status(201).json(user);
 });
 
