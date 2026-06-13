@@ -11,21 +11,21 @@ const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3
 
 function StatCard({ title, value, icon: Icon, description, loading }: { title: string, value: string | number, icon: any, description?: string, loading?: boolean }) {
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">
+    <Card className="flex flex-col">
+      <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2 gap-2">
+        <CardTitle className="text-sm font-medium leading-snug">
           {title}
         </CardTitle>
-        <Icon className="h-4 w-4 text-muted-foreground" />
+        <Icon className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-1">
         {loading ? (
           <Skeleton className="h-8 w-24" />
         ) : (
-          <div className="text-2xl font-bold">{value}</div>
+          <div className="text-xl font-bold leading-tight break-words">{value}</div>
         )}
         {description && (
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="text-xs text-muted-foreground mt-1 break-words">
             {description}
           </p>
         )}
