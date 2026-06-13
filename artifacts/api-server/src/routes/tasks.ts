@@ -50,8 +50,8 @@ router.get("/projects/:projectId/tasks/:id", requireAuth, async (req, res) => {
   res.json({ ...row.task, assigneeName: row.assigneeName });
 });
 
-// PUT /api/projects/:projectId/tasks/:id
-router.put("/projects/:projectId/tasks/:id", requireAuth, async (req, res) => {
+// PATCH /api/projects/:projectId/tasks/:id
+router.patch("/projects/:projectId/tasks/:id", requireAuth, async (req, res) => {
   const id = Number(req.params.id);
   const body = req.body as any;
   const updateData: any = {};
