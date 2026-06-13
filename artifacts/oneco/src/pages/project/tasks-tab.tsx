@@ -5,7 +5,7 @@ import {
   getListTasksQueryKey,
 } from "@workspace/api-client-react";
 import { useState } from "react";
-import { formatDateTime, taskStatusMap, taskPriorityMap } from "@/lib/format";
+import { taskStatusMap, taskPriorityMap } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -48,6 +48,8 @@ import {
   DndContext,
   DragOverlay,
   PointerSensor,
+  MouseSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   useDroppable,
@@ -67,6 +69,8 @@ const schema = z.object({
   dueDate: z.string().optional(),
 });
 
+type TaskStatus = "ikke_startet" | "pagaar" | "venter" | "fullfort";
+
 type Task = {
   id: number;
   title: string;
@@ -76,105 +80,110 @@ type Task = {
   assigneeName?: string | null;
 };
 
-function TaskCard({
+function TaskCardContent({
   task,
   onStatusChange,
-  isDragOverlay = false,
+  showControls = true,
+  dragHandleProps,
 }: {
   task: Task;
   onStatusChange: (taskId: number, status: string) => void;
-  isDragOverlay?: boolean;
+  showControls?: boolean;
+  dragHandleProps?: React.HTMLAttributes<HTMLButtonElement>;
 }) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } =
-    useDraggable({ id: task.id });
-
-  const style = {
-    transform: CSS.Translate.toString(transform),
-    opacity: isDragging ? 0.35 : 1,
-  };
-
   const isOverdue =
     task.dueDate &&
     new Date(task.dueDate) < new Date() &&
     task.status !== "fullfort";
 
-  const cardInner = (
-    <CardContent className="p-3">
-      <div className="flex justify-between items-start mb-2">
-        <Badge
-          variant="outline"
-          className={
-            taskPriorityMap[task.priority]?.color + " text-[10px] px-1 py-0 h-4"
-          }
+  return (
+    <Card className="hover:border-primary/50 transition-colors">
+      <div className="flex items-start">
+        <button
+          {...dragHandleProps}
+          className="p-2 pt-3.5 text-muted-foreground/40 hover:text-muted-foreground cursor-grab active:cursor-grabbing touch-none select-none"
+          style={{ touchAction: "none" }}
         >
-          {taskPriorityMap[task.priority]?.label}
-        </Badge>
-        <div className="flex items-center gap-1">
-          {!isDragOverlay && (
-            <Select
-              value={task.status}
-              onValueChange={(v) => onStatusChange(task.id, v)}
+          <GripVertical className="h-4 w-4" />
+        </button>
+        <CardContent className="p-3 pl-0 flex-1 min-w-0">
+          <div className="flex justify-between items-start mb-2">
+            <Badge
+              variant="outline"
+              className={
+                taskPriorityMap[task.priority]?.color +
+                " text-[10px] px-1 py-0 h-4"
+              }
             >
-              <SelectTrigger className="h-6 w-6 p-0 border-none bg-transparent">
-                <span className="sr-only">Endre status</span>
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(taskStatusMap).map(([k, v]) => (
-                  <SelectItem key={k} value={k}>
-                    {v.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-        </div>
-      </div>
-      <p className="font-medium text-sm mb-2">{task.title}</p>
-      <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
-        <div className="flex items-center gap-1">
-          <Calendar className="h-3 w-3" />
-          <span className={isOverdue ? "text-destructive font-medium" : ""}>
-            {task.dueDate
-              ? new Date(task.dueDate).toLocaleDateString("no-NO", {
-                  month: "short",
-                  day: "numeric",
-                })
-              : "-"}
-          </span>
-        </div>
-        {task.assigneeName && (
-          <div className="truncate max-w-[80px] bg-secondary px-1.5 py-0.5 rounded">
-            {task.assigneeName.split(" ")[0]}
+              {taskPriorityMap[task.priority]?.label}
+            </Badge>
+            {showControls && (
+              <Select
+                value={task.status}
+                onValueChange={(v) => onStatusChange(task.id, v)}
+              >
+                <SelectTrigger className="h-6 w-6 p-0 border-none bg-transparent">
+                  <span className="sr-only">Endre status</span>
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(taskStatusMap).map(([k, v]) => (
+                    <SelectItem key={k} value={k}>
+                      {v.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
-        )}
+          <p className="font-medium text-sm mb-2">{task.title}</p>
+          <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
+            <div className="flex items-center gap-1">
+              <Calendar className="h-3 w-3" />
+              <span className={isOverdue ? "text-destructive font-medium" : ""}>
+                {task.dueDate
+                  ? new Date(task.dueDate).toLocaleDateString("no-NO", {
+                      month: "short",
+                      day: "numeric",
+                    })
+                  : "-"}
+              </span>
+            </div>
+            {task.assigneeName && (
+              <div className="truncate max-w-[80px] bg-secondary px-1.5 py-0.5 rounded">
+                {task.assigneeName.split(" ")[0]}
+              </div>
+            )}
+          </div>
+        </CardContent>
       </div>
-    </CardContent>
+    </Card>
   );
+}
 
-  if (isDragOverlay) {
-    return (
-      <Card className="shadow-xl border-primary/40 rotate-1 cursor-grabbing w-full">
-        {cardInner}
-      </Card>
-    );
-  }
+function DraggableTaskCard({
+  task,
+  onStatusChange,
+}: {
+  task: Task;
+  onStatusChange: (taskId: number, status: string) => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } =
+    useDraggable({ id: task.id });
+
+  const style: React.CSSProperties = {
+    transform: CSS.Translate.toString(transform),
+    opacity: isDragging ? 0.3 : 1,
+    position: "relative",
+    zIndex: isDragging ? 1 : undefined,
+  };
 
   return (
     <div ref={setNodeRef} style={style}>
-      <Card
-        className={`hover:border-primary/50 transition-colors group ${isDragging ? "opacity-40" : ""}`}
-      >
-        <div className="flex items-start">
-          <button
-            {...listeners}
-            {...attributes}
-            className="p-2 pt-3 text-muted-foreground/40 hover:text-muted-foreground cursor-grab active:cursor-grabbing touch-none"
-          >
-            <GripVertical className="h-4 w-4" />
-          </button>
-          <div className="flex-1 min-w-0">{cardInner}</div>
-        </div>
-      </Card>
+      <TaskCardContent
+        task={task}
+        onStatusChange={onStatusChange}
+        dragHandleProps={{ ...listeners, ...attributes }}
+      />
     </div>
   );
 }
@@ -193,8 +202,10 @@ function KanbanColumn({
   return (
     <div
       ref={setNodeRef}
-      className={`rounded-xl p-3 min-h-[500px] transition-colors ${
-        isOver ? "bg-primary/10 ring-2 ring-primary/30" : "bg-muted/50"
+      className={`rounded-xl p-3 min-h-[500px] transition-colors duration-150 ${
+        isOver
+          ? "bg-primary/10 ring-2 ring-primary/40 ring-inset"
+          : "bg-muted/50"
       }`}
     >
       <div className="flex items-center justify-between mb-3 px-1">
@@ -203,7 +214,11 @@ function KanbanColumn({
       </div>
       <div className="space-y-3">
         {tasks.map((task) => (
-          <TaskCard key={task.id} task={task} onStatusChange={onStatusChange} />
+          <DraggableTaskCard
+            key={task.id}
+            task={task}
+            onStatusChange={onStatusChange}
+          />
         ))}
       </div>
     </div>
@@ -227,7 +242,11 @@ export function TasksTab({ projectId }: { projectId: number }) {
   const [activeTask, setActiveTask] = useState<Task | null>(null);
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
+    useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, {
+      activationConstraint: { delay: 250, tolerance: 5 },
+    }),
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   );
 
   const form = useForm<z.infer<typeof schema>>({
@@ -257,8 +276,6 @@ export function TasksTab({ projectId }: { projectId: number }) {
     );
   };
 
-  type TaskStatus = "ikke_startet" | "pagaar" | "venter" | "fullfort";
-
   const handleStatusChange = (taskId: number, newStatus: string) => {
     updateTask.mutate(
       { projectId, id: taskId, data: { status: newStatus as TaskStatus } },
@@ -285,17 +302,27 @@ export function TasksTab({ projectId }: { projectId: number }) {
 
     const taskId = active.id as number;
     const newStatus = over.id as string;
+    const validStatuses: TaskStatus[] = [
+      "ikke_startet",
+      "pagaar",
+      "venter",
+      "fullfort",
+    ];
+
+    if (!validStatuses.includes(newStatus as TaskStatus)) return;
 
     const task = tasks?.find((t) => t.id === taskId);
     if (!task || task.status === newStatus) return;
 
-    const columns = ["ikke_startet", "pagaar", "venter", "fullfort"];
-    if (!columns.includes(newStatus)) return;
-
     handleStatusChange(taskId, newStatus);
   };
 
-  const columns = ["ikke_startet", "pagaar", "venter", "fullfort"];
+  const columns: TaskStatus[] = [
+    "ikke_startet",
+    "pagaar",
+    "venter",
+    "fullfort",
+  ];
 
   if (isLoading)
     return (
@@ -454,13 +481,15 @@ export function TasksTab({ projectId }: { projectId: number }) {
             })}
           </div>
 
-          <DragOverlay>
+          <DragOverlay dropAnimation={null}>
             {activeTask ? (
-              <TaskCard
-                task={activeTask}
-                onStatusChange={() => {}}
-                isDragOverlay
-              />
+              <div className="rotate-2 shadow-2xl opacity-95 w-full">
+                <TaskCardContent
+                  task={activeTask}
+                  onStatusChange={() => {}}
+                  showControls={false}
+                />
+              </div>
             ) : null}
           </DragOverlay>
         </DndContext>
