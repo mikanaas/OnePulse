@@ -40,6 +40,7 @@ import type {
   ListTasksParams,
   ParseEffectInput,
   ParsedEffect,
+  PortfolioAnalysis,
   PortfolioQuery,
   PortfolioStats,
   Project,
@@ -3461,6 +3462,76 @@ export const useParseEffect = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getParseEffectMutationOptions(options));
+    }
+
+export const getAnalyzePortfolioUrl = () => {
+
+
+
+
+  return `/api/ai/portfolio-analysis`
+}
+
+/**
+ * @summary Run AI analysis across all projects in the portfolio
+ */
+export const analyzePortfolio = async ( options?: RequestInit): Promise<PortfolioAnalysis> => {
+
+  return customFetch<PortfolioAnalysis>(getAnalyzePortfolioUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getAnalyzePortfolioMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof analyzePortfolio>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof analyzePortfolio>>, TError,void, TContext> => {
+
+const mutationKey = ['analyzePortfolio'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof analyzePortfolio>>, void> = () => {
+
+
+          return  analyzePortfolio(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AnalyzePortfolioMutationResult = NonNullable<Awaited<ReturnType<typeof analyzePortfolio>>>
+
+    export type AnalyzePortfolioMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Run AI analysis across all projects in the portfolio
+ */
+export const useAnalyzePortfolio = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof analyzePortfolio>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof analyzePortfolio>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getAnalyzePortfolioMutationOptions(options));
     }
 
 export const getExportExcelUrl = () => {

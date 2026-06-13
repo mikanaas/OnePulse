@@ -8,7 +8,8 @@ import {
   Settings, 
   LogOut, 
   Menu,
-  MessageSquare
+  MessageSquare,
+  Sparkles
 } from "lucide-react";
 import {
   Sidebar,
@@ -47,6 +48,7 @@ function NavContent() {
     { title: "Portefølje", icon: LayoutDashboard, href: "/portfolio" },
     { title: "Prosjekter", icon: Briefcase, href: "/projects" },
     { title: "Mitt arbeid", icon: CheckSquare, href: "/my-work" },
+    { title: "AI-analyse", icon: Sparkles, href: "/ai-analyse" },
   ];
 
   if (isAdmin) {

@@ -702,6 +702,61 @@ export interface ParsedEffect {
   confidenceLevel: ParsedEffectConfidenceLevel;
 }
 
+export interface AnalysisHealthScore {
+  score: number;
+  label: string;
+  summary: string;
+}
+
+export interface AnalysisInsight {
+  title: string;
+  detail: string;
+  projectNames?: string[];
+}
+
+export type AnalysisRecommendationPriority = typeof AnalysisRecommendationPriority[keyof typeof AnalysisRecommendationPriority];
+
+
+export const AnalysisRecommendationPriority = {
+  høy: 'høy',
+  middels: 'middels',
+  lav: 'lav',
+} as const;
+
+export interface AnalysisRecommendation {
+  title: string;
+  detail: string;
+  priority: AnalysisRecommendationPriority;
+}
+
+export type ProjectAssessmentItemRisk = typeof ProjectAssessmentItemRisk[keyof typeof ProjectAssessmentItemRisk];
+
+
+export const ProjectAssessmentItemRisk = {
+  lav: 'lav',
+  middels: 'middels',
+  høy: 'høy',
+} as const;
+
+export interface ProjectAssessmentItem {
+  name: string;
+  status: string;
+  assessment: string;
+  risk: ProjectAssessmentItemRisk;
+  strengths?: string;
+  weaknesses?: string;
+}
+
+export interface PortfolioAnalysis {
+  generatedAt: string;
+  overallHealth: AnalysisHealthScore;
+  successFactors: AnalysisInsight[];
+  failurePatterns: AnalysisInsight[];
+  opportunities: AnalysisInsight[];
+  recommendations: AnalysisRecommendation[];
+  projectAssessments: ProjectAssessmentItem[];
+}
+
 /**
  * @nullable
  */

@@ -150,4 +150,134 @@ Returner KUN gyldig JSON, ingen annen tekst.`;
   }
 });
 
+// POST /api/ai/portfolio-analysis
+router.post("/ai/portfolio-analysis", requireAuth, async (_req, res) => {
+  const projects = await db.select().from(projectsTable);
+  const allTasks = await db.select().from(tasksTable);
+  const allEffects = await db.select().from(effectEntriesTable);
+  const allCosts = await db.select().from(costEntriesTable);
+  const allActivity = await db.select().from(activityLogTable);
+
+  // Build per-project context
+  const projectData = projects.map((p) => {
+    const tasks = allTasks.filter((t) => t.projectId === p.id);
+    const effects = allEffects.filter((e) => e.projectId === p.id);
+    const costs = allCosts.filter((c) => c.projectId === p.id);
+    const activity = allActivity.filter((a) => a.projectId === p.id);
+    const totalSavings = effects.reduce((s, e) => s + Number(e.value), 0);
+    const totalCosts = costs.reduce((s, c) => s + Number(c.value), 0);
+    const doneTasks = tasks.filter((t) => t.status === "fullfort").length;
+    const overdueCount = tasks.filter((t) => t.dueDate && new Date(t.dueDate) < new Date() && t.status !== "fullfort").length;
+    const goalAchievementPct = p.goalSavingsValue && Number(p.goalSavingsValue) > 0 && p.goalSavingsUnit === "kr"
+      ? Math.round((totalSavings / Number(p.goalSavingsValue)) * 100)
+      : null;
+    return {
+      name: p.name,
+      status: p.status,
+      businessUnit: p.businessUnit ?? "ukjent",
+      description: p.description ?? "",
+      goalText: p.goalText ?? "",
+      goalSavingsValue: p.goalSavingsValue ?? 0,
+      goalSavingsUnit: p.goalSavingsUnit ?? "kr",
+      totalSavings,
+      totalCosts,
+      taskCount: tasks.length,
+      doneTasks,
+      overdueCount,
+      activityCount: activity.length,
+      goalAchievementPct,
+      startDate: p.startDate,
+      plannedEndDate: p.plannedEndDate,
+    };
+  });
+
+  const portfolioSummary = `
+Totalt ${projects.length} prosjekter.
+Statuser: ${Object.entries(
+    projectData.reduce<Record<string, number>>((acc, p) => { acc[p.status] = (acc[p.status] || 0) + 1; return acc; }, {})
+  ).map(([k, v]) => `${k}: ${v}`).join(", ")}.
+Total realisert besparelse: ${projectData.reduce((s, p) => s + p.totalSavings, 0).toLocaleString("nb-NO")} kr.
+Totale kostnader: ${projectData.reduce((s, p) => s + p.totalCosts, 0).toLocaleString("nb-NO")} kr.
+
+Prosjektdetaljer:
+${projectData.map((p) => `
+- Navn: ${p.name}
+  Status: ${p.status} | Enhet: ${p.businessUnit}
+  Beskrivelse: ${p.description.slice(0, 150)}
+  Mål: ${p.goalText.slice(0, 100)}
+  Oppgaver: ${p.doneTasks}/${p.taskCount} fullfort, ${p.overdueCount} forsinket
+  Besparelse: ${p.totalSavings.toLocaleString("nb-NO")} kr${p.goalAchievementPct !== null ? ` (${p.goalAchievementPct}% av mål)` : ""}
+  Kostnader: ${p.totalCosts.toLocaleString("nb-NO")} kr
+  Aktivitetslogger: ${p.activityCount}
+`).join("")}`;
+
+  const prompt = `Du er en erfaren porteføljeanalytiker for digitaliserings- og AI-prosjekter i en norsk virksomhet.
+
+Analyser følgende portefølje og returner en strukturert analyse som JSON:
+
+${portfolioSummary}
+
+Returner KUN gyldig JSON (ingen markdown, ingen forklaring utenfor JSON) med denne strukturen:
+{
+  "generatedAt": "<ISO-timestamp>",
+  "overallHealth": {
+    "score": <heltall 0-100>,
+    "label": "<Svak|Middels|God|Utmerket>",
+    "summary": "<2-3 setninger om porteføljens helhetlige tilstand>"
+  },
+  "successFactors": [
+    { "title": "<kort tittel>", "detail": "<1-2 setninger>", "projectNames": ["<prosjektnavn>"] }
+  ],
+  "failurePatterns": [
+    { "title": "<kort tittel>", "detail": "<1-2 setninger>", "projectNames": ["<prosjektnavn>"] }
+  ],
+  "opportunities": [
+    { "title": "<kort tittel>", "detail": "<1-2 setninger>", "projectNames": [] }
+  ],
+  "recommendations": [
+    { "title": "<kort tittel>", "detail": "<1-2 setninger>", "priority": "<høy|middels|lav>" }
+  ],
+  "projectAssessments": [
+    {
+      "name": "<prosjektnavn>",
+      "status": "<status>",
+      "assessment": "<1-2 setninger vurdering>",
+      "risk": "<lav|middels|høy>",
+      "strengths": "<kort>",
+      "weaknesses": "<kort>"
+    }
+  ]
+}
+
+Gi minst 3 suksessfaktorer, 3 svakhetsmønstre, 3 muligheter og 4 anbefalinger. Vurder alle prosjekter i projectAssessments. Bruk norsk gjennomgående.`;
+
+  try {
+    const client = getClient();
+    const message = await client.messages.create({
+      model: "claude-opus-4-5",
+      max_tokens: 3500,
+      messages: [{ role: "user", content: prompt }],
+    });
+    const raw = message.content[0].type === "text" ? message.content[0].text : "{}";
+    // Strip potential markdown fences
+    const cleaned = raw.replace(/^```(?:json)?\n?/m, "").replace(/\n?```$/m, "").trim();
+    const parsed = JSON.parse(cleaned);
+    parsed.generatedAt = parsed.generatedAt || new Date().toISOString();
+    res.json(parsed);
+  } catch (err) {
+    logger.error({ err }, "AI portfolio analysis failed");
+    // Graceful fallback
+    res.status(500).json({
+      error: "AI not available",
+      generatedAt: new Date().toISOString(),
+      overallHealth: { score: 0, label: "Ukjent", summary: "AI-tjenesten er ikke tilgjengelig for øyeblikket." },
+      successFactors: [],
+      failurePatterns: [],
+      opportunities: [],
+      recommendations: [],
+      projectAssessments: [],
+    });
+  }
+});
+
 export default router;

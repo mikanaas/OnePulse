@@ -832,6 +832,47 @@ export const ParseEffectResponse = zod.object({
 
 
 /**
+ * @summary Run AI analysis across all projects in the portfolio
+ */
+export const AnalyzePortfolioResponse = zod.object({
+  "generatedAt": zod.string(),
+  "overallHealth": zod.object({
+  "score": zod.number(),
+  "label": zod.string(),
+  "summary": zod.string()
+}),
+  "successFactors": zod.array(zod.object({
+  "title": zod.string(),
+  "detail": zod.string(),
+  "projectNames": zod.array(zod.string()).optional()
+})),
+  "failurePatterns": zod.array(zod.object({
+  "title": zod.string(),
+  "detail": zod.string(),
+  "projectNames": zod.array(zod.string()).optional()
+})),
+  "opportunities": zod.array(zod.object({
+  "title": zod.string(),
+  "detail": zod.string(),
+  "projectNames": zod.array(zod.string()).optional()
+})),
+  "recommendations": zod.array(zod.object({
+  "title": zod.string(),
+  "detail": zod.string(),
+  "priority": zod.enum(['høy', 'middels', 'lav'])
+})),
+  "projectAssessments": zod.array(zod.object({
+  "name": zod.string(),
+  "status": zod.string(),
+  "assessment": zod.string(),
+  "risk": zod.enum(['lav', 'middels', 'høy']),
+  "strengths": zod.string().optional(),
+  "weaknesses": zod.string().optional()
+}))
+})
+
+
+/**
  * @summary Export project report as PDF
  */
 export const ExportProjectPdfParams = zod.object({
