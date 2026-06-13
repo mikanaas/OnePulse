@@ -70,8 +70,8 @@ router.delete("/projects/:projectId/tasks/:id", requireAuth, async (req, res) =>
   res.status(204).end();
 });
 
-// GET /api/tasks/my
-router.get("/tasks/my", requireAuth, async (req, res) => {
+// GET /api/tasks/mine
+router.get("/tasks/mine", requireAuth, async (req, res) => {
   const user = (req as any).dbUser;
   const { status } = req.query as { status?: string };
   const conditions: any[] = [eq(tasksTable.assigneeId, user.id)];

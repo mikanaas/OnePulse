@@ -64,8 +64,8 @@ router.get("/portfolio/savings-over-time", requireAuth, async (_req, res) => {
   res.json(points);
 });
 
-// GET /api/portfolio/by-status
-router.get("/portfolio/by-status", requireAuth, async (_req, res) => {
+// GET /api/portfolio/projects-by-status
+router.get("/portfolio/projects-by-status", requireAuth, async (_req, res) => {
   const rows = await db
     .select({
       status: projectsTable.status,
@@ -76,8 +76,8 @@ router.get("/portfolio/by-status", requireAuth, async (_req, res) => {
   res.json(rows);
 });
 
-// GET /api/portfolio/by-unit
-router.get("/portfolio/by-unit", requireAuth, async (_req, res) => {
+// GET /api/portfolio/projects-by-unit
+router.get("/portfolio/projects-by-unit", requireAuth, async (_req, res) => {
   const rows = await db
     .select({
       businessUnit: projectsTable.businessUnit,
