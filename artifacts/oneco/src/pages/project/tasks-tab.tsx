@@ -2,6 +2,7 @@ import {
   useListTasks,
   useCreateTask,
   useUpdateTask,
+  useListUsers,
   getListTasksQueryKey,
 } from "@workspace/api-client-react";
 import { useState } from "react";
@@ -73,6 +74,7 @@ const schema = z.object({
     .default("ikke_startet"),
   priority: z.enum(["lav", "middels", "hoy"]).default("middels"),
   dueDate: z.string().optional(),
+  assigneeId: z.string().optional(),
 });
 
 type TaskStatus = "ikke_startet" | "pagaar" | "venter" | "fullfort";
@@ -261,6 +263,9 @@ export function TasksTab({ projectId }: { projectId: number }) {
   });
   const createTask = useCreateTask();
   const updateTask = useUpdateTask();
+  const { data: users } = useListUsers({
+    query: { queryKey: ["users"], staleTime: 60_000 },
+  });
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -286,12 +291,23 @@ export function TasksTab({ projectId }: { projectId: number }) {
       status: "ikke_startet",
       priority: "middels",
       dueDate: "",
+      assigneeId: "",
     },
   });
 
   const onSubmit = (data: z.infer<typeof schema>) => {
     createTask.mutate(
-      { projectId, data },
+      {
+        projectId,
+        data: {
+          title: data.title,
+          description: data.description || undefined,
+          status: data.status,
+          priority: data.priority,
+          dueDate: data.dueDate || undefined,
+          assigneeId: data.assigneeId ? Number(data.assigneeId) : undefined,
+        },
+      },
       {
         onSuccess: () => {
           toast({ title: "Oppgave opprettet" });
@@ -466,18 +482,44 @@ export function TasksTab({ projectId }: { projectId: number }) {
                     )}
                   />
                 </div>
-                <FormField
-                  control={form.control}
-                  name="dueDate"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Frist</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="dueDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Frist</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="assigneeId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Tildelt</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Ingen" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="">Ingen</SelectItem>
+                            {users?.map((u) => (
+                              <SelectItem key={u.id} value={String(u.id)}>
+                                {u.name || u.email}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormItem>
+                    )}
+                  />
+                </div>
                 <Button
                   type="submit"
                   className="w-full"
