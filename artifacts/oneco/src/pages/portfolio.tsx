@@ -1,7 +1,7 @@
 import { useGetPortfolioStats, useGetPortfolioSavingsOverTime, useGetProjectsByStatus, useGetProjectsByUnit, useGetSavingsByProject } from "@workspace/api-client-react";
 import { AppLayout } from "@/components/layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatCurrency, formatNumber } from "@/lib/format";
+import { formatCurrency, formatNumber, statusMap } from "@/lib/format";
 import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip as RechartsTooltip, XAxis, YAxis, Cell } from "recharts";
 import { Activity, Briefcase, CheckCircle, Lightbulb, Users, TrendingUp, DollarSign } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -141,8 +141,8 @@ export default function PortfolioPage() {
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <RechartsTooltip />
-                    <Legend />
+                    <RechartsTooltip formatter={(value, name) => [value, statusMap[name as string]?.label ?? name]} />
+                    <Legend formatter={(value) => statusMap[value]?.label ?? value} />
                   </PieChart>
                 </ResponsiveContainer>
               )}
