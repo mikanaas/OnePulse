@@ -21,7 +21,7 @@ export function DashboardTab({ projectId }: { projectId: number }) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{project.ownerName || "Ikke tildelt"}</div>
-            <p className="text-xs text-muted-foreground mt-1">Forretningsenhet: {project.businessUnit || "-"}</p>
+            <p className="text-xs text-muted-foreground mt-1">Forretningsområde: {project.businessUnit || "-"}</p>
           </CardContent>
         </Card>
         

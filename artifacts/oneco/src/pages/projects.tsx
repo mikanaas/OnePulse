@@ -62,7 +62,7 @@ export default function ProjectsPage() {
               <TableRow>
                 <TableHead>Navn</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Enhet</TableHead>
+                <TableHead>Forretningsområde</TableHead>
                 <TableHead className="text-right">Målbesparelse</TableHead>
                 <TableHead className="text-right">Oppgaver</TableHead>
               </TableRow>

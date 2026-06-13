@@ -151,7 +151,7 @@ export default function PortfolioPage() {
 
           <Card className="col-span-1">
             <CardHeader>
-              <CardTitle>Prosjekter per forretningsenhet</CardTitle>
+              <CardTitle>Prosjekter per forretningsområde</CardTitle>
             </CardHeader>
             <CardContent className="h-[300px]">
               {unitLoading ? <Skeleton className="h-full w-full" /> : (

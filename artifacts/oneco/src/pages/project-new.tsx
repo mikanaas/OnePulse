@@ -101,10 +101,21 @@ export default function ProjectNew() {
                   name="businessUnit"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Forretningsenhet</FormLabel>
-                      <FormControl>
-                        <Input placeholder="F.eks. IT, HR, Salg" {...field} />
-                      </FormControl>
+                      <FormLabel>Forretningsområde</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Velg forretningsområde" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="OneCo Elektro">OneCo Elektro</SelectItem>
+                          <SelectItem value="OneCo Technologies">OneCo Technologies</SelectItem>
+                          <SelectItem value="OneCo Infra">OneCo Infra</SelectItem>
+                          <SelectItem value="OneCo Networks">OneCo Networks</SelectItem>
+                          <SelectItem value="OneCo Sverige">OneCo Sverige</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}

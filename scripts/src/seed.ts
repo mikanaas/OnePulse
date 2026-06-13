@@ -43,7 +43,7 @@ async function seed() {
     {
       name: "AI-drevet kundeservice chatbot",
       description: "Implementere en AI-assistent for å håndtere vanlige kundehenvendelser automatisk, redusere ventetid og frigjøre kapasitet hos kundeserviceteamet.",
-      businessUnit: "Kundeservice",
+      businessUnit: "OneCo Technologies",
       status: "pagaende",
       ownerId: u1,
       startDate: "2025-01-15",
@@ -56,7 +56,7 @@ async function seed() {
     {
       name: "Automatisering av fakturabehandling",
       description: "Innføre RPA og OCR-løsning for automatisk innlesing og godkjenning av leverandørfakturaer. Målet er å eliminere manuell dataregistrering.",
-      businessUnit: "Økonomi",
+      businessUnit: "OneCo Elektro",
       status: "fullfort",
       ownerId: u2,
       startDate: "2024-03-01",
@@ -69,7 +69,7 @@ async function seed() {
     {
       name: "Digitalt onboarding-system for nyansatte",
       description: "Erstatte papirbasert onboarding med en digital plattform som automatisk sender kontrakter, opplæringsmoduler og utstyrslister til nye medarbeidere.",
-      businessUnit: "HR",
+      businessUnit: "OneCo Networks",
       status: "pagaende",
       ownerId: u3,
       startDate: "2025-02-01",
@@ -82,7 +82,7 @@ async function seed() {
     {
       name: "Prediktivt vedlikehold for produksjonslinjer",
       description: "Bruke IoT-sensorer og maskinlæring for å forutsi og forebygge driftstopp på produksjonsutstyret. Redusere uplanlagte stopp med minst 60 %.",
-      businessUnit: "Produksjon",
+      businessUnit: "OneCo Infra",
       status: "ide",
       ownerId: u4,
       startDate: "2025-09-01",
@@ -95,7 +95,7 @@ async function seed() {
     {
       name: "Selvbetjeningsportal for leverandører",
       description: "Gi leverandørene tilgang til en portal der de selv kan registrere ordrebekreftelser, laste opp fakturaer og følge betalingsstatus – uten å kontakte innkjøpsavdelingen.",
-      businessUnit: "Innkjøp",
+      businessUnit: "OneCo Sverige",
       status: "pause",
       ownerId: u1,
       startDate: "2024-10-01",
@@ -108,7 +108,7 @@ async function seed() {
     {
       name: "Intelligent dokumenthåndtering med AI",
       description: "Implementere AI-drevet søk, klassifisering og tagging av interne dokumenter for å gjøre det enklere å finne riktig informasjon raskt.",
-      businessUnit: "IT",
+      businessUnit: "OneCo Technologies",
       status: "pagaende",
       ownerId: u5,
       startDate: "2025-03-01",
@@ -121,7 +121,7 @@ async function seed() {
     {
       name: "Automatisk rapportering til styret",
       description: "Koble til ERP og BI-systemer for å generere styrerapporten automatisk hver måned. Eliminere manuell datauthenting og PowerPoint-arbeid.",
-      businessUnit: "Økonomi",
+      businessUnit: "OneCo Elektro",
       status: "fullfort",
       ownerId: u2,
       startDate: "2024-06-01",
@@ -134,7 +134,7 @@ async function seed() {
     {
       name: "Digital timeregistrering og ressursplanlegging",
       description: "Modernisere timeregistreringssystemet med mobilvennlig app og automatisk integrasjon mot prosjektplanlegging og lønn.",
-      businessUnit: "HR",
+      businessUnit: "OneCo Networks",
       status: "pagaende",
       ownerId: u3,
       startDate: "2025-01-01",
@@ -147,7 +147,7 @@ async function seed() {
     {
       name: "AI-analyse av kundefeedback",
       description: "Bruke naturlig språkprosessering for å analysere kundeundersøkelser og støttehenvendelser automatisk, og identifisere trender og forbedringsområder i sanntid.",
-      businessUnit: "Kundeservice",
+      businessUnit: "OneCo Sverige",
       status: "avsluttet",
       ownerId: u1,
       startDate: "2024-01-01",
@@ -160,7 +160,7 @@ async function seed() {
     {
       name: "Energioptimalisering med smart bygg-teknologi",
       description: "Installere smarte sensorer og bygningsautomasjon for å optimalisere energiforbruket i kontorbyggene. Dynamisk styring av lys, varme og ventilasjon.",
-      businessUnit: "Eiendom",
+      businessUnit: "OneCo Infra",
       status: "ide",
       ownerId: u4,
       startDate: "2026-01-01",
