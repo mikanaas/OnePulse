@@ -2,7 +2,7 @@ import { Router } from "express";
 import { db } from "../lib/db";
 import { requireAuth } from "../lib/requireAuth";
 import { projectsTable, projectMembersTable, usersTable } from "@workspace/db";
-import { eq, and, ilike, sql } from "drizzle-orm";
+import { eq, and, or, ilike, sql } from "drizzle-orm";
 
 const router = Router();
 
@@ -12,7 +12,12 @@ router.get("/projects", requireAuth, async (req, res) => {
   const conditions: any[] = [];
   if (status) conditions.push(eq(projectsTable.status, status));
   if (businessUnit) conditions.push(eq(projectsTable.businessUnit, businessUnit));
-  if (search) conditions.push(ilike(projectsTable.name, `%${search}%`));
+  if (search) conditions.push(or(
+    ilike(projectsTable.name, `%${search}%`),
+    ilike(projectsTable.businessUnit, `%${search}%`),
+    ilike(projectsTable.description, `%${search}%`),
+    ilike(usersTable.name, `%${search}%`),
+  ));
 
   const rows = await db
     .select({
