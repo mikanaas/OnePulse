@@ -145,7 +145,7 @@ export default function ProjectOverviewPage() {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <LayoutGrid className="h-5 w-5" style={{ color: BRAND }} />
-              <h1 className="text-3xl font-bold tracking-tight">Prosjektoversikt</h1>
+              <h1 className="text-3xl font-bold tracking-tight">Heatmap</h1>
             </div>
             <p className="text-muted-foreground text-sm">
               Prestasjonsheatmap — se alle prosjekter og dimensjoner på ett blikk
