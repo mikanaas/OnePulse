@@ -88,7 +88,7 @@ function AvgCell({ score }: { score: number }) {
       className="w-full h-10 rounded-lg flex items-center justify-center text-xs font-bold border"
       style={{ backgroundColor: bg, color: text, borderColor: border }}
     >
-      {score}
+      {score}%
     </div>
   );
 }
