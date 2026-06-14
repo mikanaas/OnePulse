@@ -1,4 +1,4 @@
-import { useRoute, useLocation } from "wouter";
+import { useRoute, useLocation, useSearch } from "wouter";
 import { AppLayout } from "@/components/layout";
 import { useGetProject } from "@workspace/api-client-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,10 +14,15 @@ import { EffectsTab } from "./project/effects-tab";
 import { CostsTab } from "./project/costs-tab";
 import { GovernanceTab } from "./project/governance-tab";
 
+const VALID_TABS = ["dashboard", "tasks", "activity", "effects", "costs", "governance"] as const;
+
 export default function ProjectDetail() {
   const [, setLocation] = useLocation();
   const [, params] = useRoute("/projects/:id");
   const id = params?.id ? parseInt(params.id, 10) : 0;
+  const search = useSearch();
+  const tabParam = new URLSearchParams(search).get("tab");
+  const initialTab = VALID_TABS.includes(tabParam as any) ? tabParam! : "dashboard";
 
   const { data: project, isLoading } = useGetProject(id, {
     query: { enabled: !!id, queryKey: ["project", id] }
@@ -64,7 +69,7 @@ export default function ProjectDetail() {
           </Button>
         </div>
 
-        <Tabs defaultValue="dashboard" className="w-full">
+        <Tabs defaultValue={initialTab} className="w-full">
           <TabsList className="w-full justify-start overflow-x-auto bg-transparent border-b rounded-none h-12 p-0">
             <TabsTrigger value="dashboard" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-12 px-6">Oversikt</TabsTrigger>
             <TabsTrigger value="tasks" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-12 px-6">Oppgaver</TabsTrigger>

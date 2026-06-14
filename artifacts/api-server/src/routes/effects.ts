@@ -34,8 +34,8 @@ router.post("/projects/:projectId/effects", requireAuth, async (req, res) => {
   res.status(201).json(effect);
 });
 
-// PUT /api/projects/:projectId/effects/:id
-router.put("/projects/:projectId/effects/:id", requireAuth, async (req, res) => {
+// PATCH /api/projects/:projectId/effects/:id
+router.patch("/projects/:projectId/effects/:id", requireAuth, async (req, res) => {
   const id = Number(req.params.id);
   const body = req.body as any;
   const updateData: any = {};
@@ -79,8 +79,8 @@ router.post("/projects/:projectId/costs", requireAuth, async (req, res) => {
   res.status(201).json(cost);
 });
 
-// PUT /api/projects/:projectId/costs/:id
-router.put("/projects/:projectId/costs/:id", requireAuth, async (req, res) => {
+// PATCH /api/projects/:projectId/costs/:id
+router.patch("/projects/:projectId/costs/:id", requireAuth, async (req, res) => {
   const id = Number(req.params.id);
   const body = req.body as any;
   const updateData: any = {};

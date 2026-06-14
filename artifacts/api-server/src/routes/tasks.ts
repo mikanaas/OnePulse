@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "../lib/db";
 import { requireAuth } from "../lib/requireAuth";
-import { tasksTable, taskCommentsTable, usersTable } from "@workspace/db";
+import { tasksTable, taskCommentsTable, usersTable, projectsTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
 
 const router = Router();
@@ -76,10 +76,12 @@ router.get("/tasks/mine", requireAuth, async (req, res) => {
   const { status } = req.query as { status?: string };
   const conditions: any[] = [eq(tasksTable.assigneeId, user.id)];
   if (status) conditions.push(eq(tasksTable.status, status));
-  const rows = await db.select({ task: tasksTable })
+  const rows = await db
+    .select({ task: tasksTable, projectName: projectsTable.name })
     .from(tasksTable)
+    .leftJoin(projectsTable, eq(tasksTable.projectId, projectsTable.id))
     .where(and(...conditions));
-  res.json(rows.map(({ task }) => task));
+  res.json(rows.map(({ task, projectName }) => ({ ...task, projectName: projectName ?? null })));
 });
 
 // GET /api/projects/:projectId/tasks/:taskId/comments

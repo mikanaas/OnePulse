@@ -151,7 +151,8 @@ router.get("/portfolio/heatmap", requireAuth, async (req, res) => {
     .where(statuses.length ? inArray(projectsTable.status, statuses) : undefined);
 
   if (projects.length === 0) {
-    return res.json({ rows: [], columnAverages: { timeProgress: 50, savingsVsGoal: 50, taskFlow: 50, activityLevel: 50, netEffect: 50 } });
+    res.json({ rows: [], columnAverages: { timeProgress: 50, savingsVsGoal: 50, taskFlow: 50, activityLevel: 50, netEffect: 50 } });
+    return;
   }
 
   const pIds = projects.map((p) => p.id);

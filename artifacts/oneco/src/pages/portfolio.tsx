@@ -165,7 +165,7 @@ export default function PortfolioPage() {
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={unitData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                    <XAxis dataKey="businessUnit" tickFormatter={(v: string) => ({ "OneCo Elektro": "OCE", "OneCo Technologies": "OCT", "OneCo Infra": "OCI", "OneCo Networks": "OCN", "OneCo Sverige": "OCS" }[v] ?? v)} />
+                    <XAxis dataKey="businessUnit" tickFormatter={(v: string) => v.split(" ").map((w: string) => w[0]).join("").toUpperCase() || v} />
                     <YAxis allowDecimals={false} />
                     <RechartsTooltip />
                     <Bar dataKey="count" name="Antall" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
