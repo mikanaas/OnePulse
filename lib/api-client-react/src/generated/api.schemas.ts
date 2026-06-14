@@ -637,6 +637,7 @@ export interface SavingsTimePoint {
 export interface StatusCount {
   status: string;
   count: number;
+  projectNames: string[];
 }
 
 export interface UnitCount {

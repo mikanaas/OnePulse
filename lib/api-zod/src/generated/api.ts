@@ -841,7 +841,8 @@ export const GetPortfolioSavingsOverTimeResponse = zod.array(GetPortfolioSavings
  */
 export const GetProjectsByStatusResponseItem = zod.object({
   "status": zod.string(),
-  "count": zod.number()
+  "count": zod.number(),
+  "projectNames": zod.array(zod.string())
 })
 export const GetProjectsByStatusResponse = zod.array(GetProjectsByStatusResponseItem)
 

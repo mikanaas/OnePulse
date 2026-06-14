@@ -68,13 +68,20 @@ router.get("/portfolio/savings-over-time", requireAuth, async (_req, res) => {
 
 // GET /api/portfolio/projects-by-status
 router.get("/portfolio/projects-by-status", requireAuth, async (_req, res) => {
-  const rows = await db
-    .select({
-      status: projectsTable.status,
-      count: sql<number>`count(*)::int`,
-    })
+  const projects = await db
+    .select({ status: projectsTable.status, name: projectsTable.name })
     .from(projectsTable)
-    .groupBy(projectsTable.status);
+    .orderBy(projectsTable.name);
+  const grouped = projects.reduce<Record<string, string[]>>((acc, p) => {
+    if (!acc[p.status]) acc[p.status] = [];
+    acc[p.status].push(p.name);
+    return acc;
+  }, {});
+  const rows = Object.entries(grouped).map(([status, projectNames]) => ({
+    status,
+    count: projectNames.length,
+    projectNames,
+  }));
   res.json(rows);
 });
 

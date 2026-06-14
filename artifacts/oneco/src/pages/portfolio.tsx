@@ -10,6 +10,26 @@ import { useLocation } from "wouter";
 
 const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
 
+function StatusTooltip({ active, payload }: any) {
+  if (!active || !payload?.length) return null;
+  const d = payload[0].payload as { status: string; count: number; projectNames: string[] };
+  const label = (statusMap[d.status]?.label ?? d.status);
+  const color = payload[0].fill as string;
+  return (
+    <div className="rounded-lg border bg-popover px-3 py-2 shadow-md text-sm max-w-[220px]">
+      <div className="flex items-center gap-2 mb-1.5 font-semibold">
+        <span className="inline-block w-2.5 h-2.5 rounded-full shrink-0" style={{ background: color }} />
+        {label} ({d.count})
+      </div>
+      <ul className="space-y-0.5 pl-4 list-disc text-muted-foreground">
+        {d.projectNames.map((name) => (
+          <li key={name} className="truncate">{name}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 function StatCard({ title, value, icon: Icon, description, loading }: { title: string, value: string | number, icon: any, description?: string, loading?: boolean }) {
   return (
     <Card className="flex flex-col min-w-0">
@@ -148,7 +168,7 @@ export default function PortfolioPage() {
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <RechartsTooltip formatter={(value, name) => [value, statusMap[name as string]?.label ?? name]} />
+                    <RechartsTooltip content={<StatusTooltip />} />
                     <Legend formatter={(value) => statusMap[value]?.label ?? value} />
                   </PieChart>
                 </ResponsiveContainer>

@@ -1708,12 +1708,16 @@ components:
 
     StatusCount:
       type: object
-      required: [status, count]
+      required: [status, count, projectNames]
       properties:
         status:
           type: string
         count:
           type: integer
+        projectNames:
+          type: array
+          items:
+            type: string
 
     UnitCount:
       type: object
