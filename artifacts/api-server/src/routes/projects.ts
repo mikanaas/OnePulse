@@ -101,8 +101,8 @@ router.get("/projects/:id", requireAuth, async (req, res) => {
   res.json({ ...row.project, ownerName: row.ownerName });
 });
 
-// PUT /api/projects/:id
-router.put("/projects/:id", requireAuth, async (req, res) => {
+// PATCH /api/projects/:id
+router.patch("/projects/:id", requireAuth, async (req, res) => {
   const id = Number(req.params.id);
   const body = req.body as any;
   const updateData: any = {};
