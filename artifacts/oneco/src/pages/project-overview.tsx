@@ -167,7 +167,7 @@ export default function ProjectOverviewPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="score">Sorter: Totalskåre</SelectItem>
+                <SelectItem value="score">Sorter: Totalscore</SelectItem>
                 <SelectItem value="name">Sorter: Alfabetisk</SelectItem>
                 <SelectItem value="unit">Sorter: Enhet</SelectItem>
               </SelectContent>
