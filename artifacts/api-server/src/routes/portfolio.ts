@@ -184,25 +184,18 @@ router.get("/portfolio/heatmap", requireAuth, async (req, res) => {
 
     // ── Metric 1: Time Progress ──────────────────────────────────────
     let timeProgress: Metric;
-    if (p.startDate && p.plannedEndDate && pTasks.length > 0) {
-      const start = new Date(p.startDate).getTime();
-      const end   = new Date(p.plannedEndDate).getTime();
-      const totalDays = Math.max(1, (end - start) / 86400000);
-      const daysSinceStart = Math.max(0, (today.getTime() - start) / 86400000);
-      const expectedPct = clamp(daysSinceStart / totalDays, 0, 1);
+    if (pTasks.length > 0) {
       const doneTasks = pTasks.filter((t) => t.status === "fullfort").length;
       const actualPct = doneTasks / pTasks.length;
-      const dev = actualPct - expectedPct;
-      const score = scoreFromDev(dev);
+      const score = Math.round(actualPct * 100);
       timeProgress = {
         score,
-        deviation: dev * 100,
-        displayValue: fmtPct(dev * 100),
+        deviation: score - 50,
+        displayValue: `${score}%`,
         hasData: true,
         tooltipLines: [
-          `Fullforte oppgaver: ${doneTasks} / ${pTasks.length} (${Math.round(actualPct * 100)}%)`,
-          `Forventet pa dette tidspunktet: ${Math.round(expectedPct * 100)}%`,
-          `Tidsandel brukt: ${Math.round(clamp(daysSinceStart / totalDays, 0, 1) * 100)}%`,
+          `Fullførte oppgaver: ${doneTasks} / ${pTasks.length}`,
+          `Fremdrift: ${score}%`,
         ],
       };
     } else {
