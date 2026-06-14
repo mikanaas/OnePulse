@@ -9,7 +9,6 @@ import {
   CheckSquare,
   Activity,
   Zap,
-  ChevronDown,
   LayoutGrid,
   Loader2,
 } from "lucide-react";
@@ -17,8 +16,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 const BRAND = "#4A1F55";
 
-// ── Color scale ────────────────────────────────────────────────────────────
-// score 0→red, 25→amber, 50→neutral purple, 75→sage green, 100→forest green
+// Minimum widths for each grid column (px) — drives the horizontal scroll
+const COL_WIDTHS = "220px 120px 120px 120px 120px 120px 170px";
+
 function scoreToColor(score: number, hasData: boolean): { bg: string; text: string; border: string } {
   if (!hasData) return { bg: "#F3F4F6", text: "#9CA3AF", border: "#E5E7EB" };
   const s = Math.max(0, Math.min(100, score));
@@ -31,11 +31,11 @@ function scoreToColor(score: number, hasData: boolean): { bg: string; text: stri
   return { bg: "#FEE2E2", text: "#991B1B", border: "#FCA5A5" };
 }
 
-function totalBadge(score: number, label: string) {
+function TotalBadge({ score, label }: { score: number; label: string }) {
   const { bg, text, border } = scoreToColor(score, true);
   return (
     <div
-      className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap border"
+      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap border"
       style={{ backgroundColor: bg, color: text, borderColor: border }}
     >
       <span
@@ -49,20 +49,15 @@ function totalBadge(score: number, label: string) {
   );
 }
 
-// ── Tooltip ────────────────────────────────────────────────────────────────
 function Tooltip({ lines, children }: { lines: string[]; children: React.ReactNode }) {
   const [vis, setVis] = useState(false);
   return (
-    <div
-      className="relative"
-      onMouseEnter={() => setVis(true)}
-      onMouseLeave={() => setVis(false)}
-    >
+    <div className="relative" onMouseEnter={() => setVis(true)} onMouseLeave={() => setVis(false)}>
       {children}
       {vis && lines.length > 0 && (
-        <div className="absolute z-50 bottom-full mb-2 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs rounded-lg px-3 py-2 shadow-xl min-w-[180px] max-w-[240px] pointer-events-none">
+        <div className="absolute z-50 bottom-full mb-2 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs rounded-lg px-3 py-2 shadow-xl min-w-[200px] max-w-[260px] pointer-events-none">
           {lines.map((l, i) => (
-            <p key={i} className="leading-relaxed whitespace-nowrap">{l}</p>
+            <p key={i} className="leading-relaxed">{l}</p>
           ))}
           <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
         </div>
@@ -71,7 +66,6 @@ function Tooltip({ lines, children }: { lines: string[]; children: React.ReactNo
   );
 }
 
-// ── Cell ───────────────────────────────────────────────────────────────────
 function Cell({ metric, onClick }: { metric: HeatmapMetric; onClick: () => void }) {
   const { bg, text, border } = scoreToColor(metric.score, metric.hasData);
   return (
@@ -87,7 +81,6 @@ function Cell({ metric, onClick }: { metric: HeatmapMetric; onClick: () => void 
   );
 }
 
-// ── Average row cell ───────────────────────────────────────────────────────
 function AvgCell({ score }: { score: number }) {
   const { bg, text, border } = scoreToColor(score, true);
   return (
@@ -100,27 +93,27 @@ function AvgCell({ score }: { score: number }) {
   );
 }
 
-// ── Column config ──────────────────────────────────────────────────────────
 const COLS: { key: keyof HeatmapRow; label: string; icon: React.ElementType; desc: string }[] = [
-  { key: "timeProgress",  label: "Fremdrift",   icon: Clock,        desc: "Andel fullforte oppgaver vs. forventet fremdrift" },
-  { key: "savingsVsGoal", label: "Besparelse",  icon: TrendingUp,   desc: "Realisert besparelse vs. forventet pa dette tidspunktet" },
-  { key: "taskFlow",      label: "Oppgaveflyt", icon: CheckSquare,  desc: "Andel apne oppgaver som er forfalte" },
-  { key: "activityLevel", label: "Aktivitet",   icon: Activity,     desc: "Dager siden siste aktivitetslogg-oppforing" },
-  { key: "netEffect",     label: "Nettoeffekt", icon: Zap,          desc: "Besparelse minus kostnader" },
+  { key: "timeProgress",  label: "Fremdrift",   icon: Clock,       desc: "Andel fullførte oppgaver vs. forventet fremdrift basert på tidsbruk" },
+  { key: "savingsVsGoal", label: "Besparelse",  icon: TrendingUp,  desc: "Realisert besparelse vs. forventet på dette tidspunktet" },
+  { key: "taskFlow",      label: "Oppgaveflyt", icon: CheckSquare, desc: "Andel åpne oppgaver som er forfalt" },
+  { key: "activityLevel", label: "Aktivitet",   icon: Activity,    desc: "Dager siden siste oppføring i aktivitetsloggen" },
+  { key: "netEffect",     label: "Nettoeffekt", icon: Zap,         desc: "Realisert besparelse minus påløpte kostnader" },
 ];
 
 type SortKey = "score" | "name" | "unit";
 
 const STATUS_OPTIONS = [
-  { value: "pagaende,pause", label: "Pagaende og pause" },
-  { value: "pagaende",       label: "Kun pagaende" },
-  { value: "pause",          label: "Kun pause" },
   { value: "ide,pagaende,pause,fullfort,avsluttet", label: "Alle statuser" },
+  { value: "pagaende,pause",                         label: "Pågående og pause" },
+  { value: "pagaende",                               label: "Kun pågående" },
+  { value: "pause",                                  label: "Kun pause" },
+  { value: "fullfort",                               label: "Kun fullførte" },
 ];
 
 export default function ProjectOverviewPage() {
   const [, navigate] = useLocation();
-  const [statuses, setStatuses] = useState("pagaende,pause");
+  const [statuses, setStatuses] = useState("ide,pagaende,pause,fullfort,avsluttet");
   const [sort, setSort] = useState<SortKey>("score");
 
   const { data, isLoading, isError } = useGetPortfolioHeatmap(
@@ -138,10 +131,10 @@ export default function ProjectOverviewPage() {
 
   const colNav = (row: HeatmapRow, colKey: string) => {
     const base = `/projects/${row.projectId}`;
-    if (colKey === "savingsVsGoal") return navigate(`${base}?tab=effects`);
-    if (colKey === "taskFlow")      return navigate(`${base}?tab=tasks`);
-    if (colKey === "activityLevel") return navigate(`${base}?tab=activity`);
-    navigate(`${base}`);
+    if (colKey === "savingsVsGoal") { navigate(`${base}?tab=effects`); return; }
+    if (colKey === "taskFlow")      { navigate(`${base}?tab=tasks`); return; }
+    if (colKey === "activityLevel") { navigate(`${base}?tab=activity`); return; }
+    navigate(base);
   };
 
   return (
@@ -155,12 +148,12 @@ export default function ProjectOverviewPage() {
               <h1 className="text-3xl font-bold tracking-tight">Prosjektoversikt</h1>
             </div>
             <p className="text-muted-foreground text-sm">
-              Prestasjonsheatmap — se alle prosjekter og dimensjoner pa ett blikk
+              Prestasjonsheatmap — se alle prosjekter og dimensjoner på ett blikk
             </p>
           </div>
           <div className="flex items-center gap-3 shrink-0">
             <Select value={statuses} onValueChange={setStatuses}>
-              <SelectTrigger className="w-[200px] h-9 text-sm">
+              <SelectTrigger className="w-[210px] h-9 text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -174,7 +167,7 @@ export default function ProjectOverviewPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="score">Sorter: Totalskore</SelectItem>
+                <SelectItem value="score">Sorter: Totalskåre</SelectItem>
                 <SelectItem value="name">Sorter: Alfabetisk</SelectItem>
                 <SelectItem value="unit">Sorter: Enhet</SelectItem>
               </SelectContent>
@@ -209,83 +202,90 @@ export default function ProjectOverviewPage() {
           </div>
         )}
 
-        {/* Heatmap */}
+        {/* Heatmap — horizontally scrollable */}
         {!isLoading && !isError && rows.length > 0 && (
           <div
             className="rounded-2xl border border-gray-200 bg-white overflow-hidden"
             style={{ boxShadow: "0 4px 24px rgba(74,31,85,0.07), 0 1px 4px rgba(0,0,0,0.04)" }}
           >
-            {/* Column headers — sticky */}
-            <div className="sticky top-0 z-10 bg-white border-b border-gray-100">
-              <div className="grid items-center px-4 py-3 gap-2" style={{ gridTemplateColumns: "minmax(180px,2fr) repeat(5,minmax(100px,1fr)) minmax(160px,1.5fr)" }}>
-                <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Prosjekt</div>
-                {COLS.map((col) => (
-                  <Tooltip key={col.key} lines={[col.desc]}>
-                    <div className="flex flex-col items-center gap-1 cursor-default">
-                      <col.icon className="h-4 w-4" style={{ color: BRAND }} />
-                      <span className="text-xs font-semibold text-gray-600">{col.label}</span>
-                    </div>
-                  </Tooltip>
-                ))}
-                <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide text-right">Totalskore</div>
-              </div>
-            </div>
+            {/* Scroll container */}
+            <div className="overflow-x-auto">
+              <div style={{ minWidth: "990px" }}>
 
-            {/* Rows */}
-            <div className="divide-y divide-gray-50">
-              {rows.map((row, i) => (
-                <div
-                  key={row.projectId}
-                  className="grid items-center px-4 py-2 gap-2 hover:bg-gray-50/60 transition-colors"
-                  style={{ gridTemplateColumns: "minmax(180px,2fr) repeat(5,minmax(100px,1fr)) minmax(160px,1.5fr)" }}
-                >
-                  {/* Project name */}
-                  <button
-                    className="text-left group"
-                    onClick={() => navigate(`/projects/${row.projectId}`)}
+                {/* Column headers */}
+                <div className="sticky top-0 z-10 bg-white border-b border-gray-100">
+                  <div
+                    className="grid items-center px-4 py-3 gap-2"
+                    style={{ gridTemplateColumns: COL_WIDTHS }}
                   >
-                    <p className="text-sm font-semibold text-gray-900 group-hover:underline leading-tight truncate">
-                      {row.projectName}
-                    </p>
-                    {row.businessUnit && (
-                      <p className="text-xs text-muted-foreground truncate mt-0.5">{row.businessUnit}</p>
-                    )}
-                  </button>
-
-                  {/* Metric cells */}
-                  {COLS.map((col) => (
-                    <Cell
-                      key={col.key}
-                      metric={row[col.key] as HeatmapMetric}
-                      onClick={() => colNav(row, col.key)}
-                    />
-                  ))}
-
-                  {/* Total badge */}
-                  <div className="flex justify-end">
-                    <button onClick={() => navigate(`/projects/${row.projectId}`)}>
-                      {totalBadge(row.totalScore, row.totalLabel)}
-                    </button>
+                    <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Prosjekt</div>
+                    {COLS.map((col) => (
+                      <Tooltip key={col.key} lines={[col.desc]}>
+                        <div className="flex flex-col items-center gap-1 cursor-default">
+                          <col.icon className="h-4 w-4" style={{ color: BRAND }} />
+                          <span className="text-xs font-semibold text-gray-600">{col.label}</span>
+                        </div>
+                      </Tooltip>
+                    ))}
+                    <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide text-right pr-1">Totalskåre</div>
                   </div>
                 </div>
-              ))}
-            </div>
 
-            {/* Column averages */}
-            {avgs && (
-              <div
-                className="grid items-center px-4 py-3 gap-2 bg-gray-50 border-t border-gray-100"
-                style={{ gridTemplateColumns: "minmax(180px,2fr) repeat(5,minmax(100px,1fr)) minmax(160px,1.5fr)" }}
-              >
-                <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Snitt</div>
-                <AvgCell score={avgs.timeProgress} />
-                <AvgCell score={avgs.savingsVsGoal} />
-                <AvgCell score={avgs.taskFlow} />
-                <AvgCell score={avgs.activityLevel} />
-                <AvgCell score={avgs.netEffect} />
-                <div />
+                {/* Data rows */}
+                <div className="divide-y divide-gray-50">
+                  {rows.map((row) => (
+                    <div
+                      key={row.projectId}
+                      className="grid items-center px-4 py-2 gap-2 hover:bg-gray-50/60 transition-colors"
+                      style={{ gridTemplateColumns: COL_WIDTHS }}
+                    >
+                      <button
+                        className="text-left group min-w-0"
+                        onClick={() => navigate(`/projects/${row.projectId}`)}
+                      >
+                        <p className="text-sm font-semibold text-gray-900 group-hover:underline leading-tight truncate">
+                          {row.projectName}
+                        </p>
+                        {row.businessUnit && (
+                          <p className="text-xs text-muted-foreground truncate mt-0.5">{row.businessUnit}</p>
+                        )}
+                      </button>
+
+                      {COLS.map((col) => (
+                        <Cell
+                          key={col.key}
+                          metric={row[col.key] as HeatmapMetric}
+                          onClick={() => colNav(row, col.key)}
+                        />
+                      ))}
+
+                      <div className="flex justify-end">
+                        <button onClick={() => navigate(`/projects/${row.projectId}`)}>
+                          <TotalBadge score={row.totalScore} label={row.totalLabel} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Column averages */}
+                {avgs && (
+                  <div
+                    className="grid items-center px-4 py-3 gap-2 bg-gray-50 border-t border-gray-100"
+                    style={{ gridTemplateColumns: COL_WIDTHS }}
+                  >
+                    <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Snitt</div>
+                    <AvgCell score={avgs.timeProgress} />
+                    <AvgCell score={avgs.savingsVsGoal} />
+                    <AvgCell score={avgs.taskFlow} />
+                    <AvgCell score={avgs.activityLevel} />
+                    <AvgCell score={avgs.netEffect} />
+                    <div />
+                  </div>
+                )}
+
               </div>
-            )}
+            </div>
           </div>
         )}
 
