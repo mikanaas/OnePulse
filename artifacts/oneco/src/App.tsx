@@ -20,6 +20,7 @@ import AdminPage from "@/pages/admin";
 import ProjectReportPage from "@/pages/project-report";
 import PortfolioReportPage from "@/pages/portfolio-report";
 import AiAnalysisPage from "@/pages/ai-analysis";
+import ProjectOverviewPage from "@/pages/project-overview";
 import { ChatPanel } from "@/components/chat-panel";
 
 const clerkPubKey = publishableKeyFromHost(
@@ -184,6 +185,7 @@ function ClerkProviderWithRoutes() {
           <Route path="/rapport" component={() => <ProtectedRoute component={PortfolioReportPage} />} />
           <Route path="/ai-analyse" component={() => <ProtectedRoute component={AiAnalysisPage} />} />
           <Route path="/my-work" component={() => <ProtectedRoute component={MyWorkPage} />} />
+          <Route path="/prosjektoversikt" component={() => <ProtectedRoute component={ProjectOverviewPage} />} />
           <Route path="/admin" component={() => <AdminRoute component={AdminPage} />} />
           
           <Route component={NotFound} />

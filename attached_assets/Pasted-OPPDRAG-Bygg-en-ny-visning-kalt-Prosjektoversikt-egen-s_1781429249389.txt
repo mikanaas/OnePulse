@@ -1,0 +1,87 @@
+OPPDRAG
+
+Bygg en ny visning kalt "Prosjektoversikt" (egen side i navigasjonsmenyen, mellom "Mitt arbeid" og "Admin"), som viser et heatmap over alle prosjekters prestasjon – hvor godt hvert prosjekt ligger an mot sine målsettinger, på flere dimensjoner samtidig. Dette skal være et av de visuelt mest polerte elementene i hele applikasjonen – noe som ser ut som det er hentet fra et premium analytics-produkt (à la Linear Insights eller Vercel Analytics), ikke en standard tabell.
+
+
+DATAGRUNNLAG
+
+Heatmapet skal bygge på eksisterende data, strukturert som en matrise:
+
+
+Rader: alle prosjekter (filtrerbart på status, default: vis Pågående og Pause)
+Kolonner: et sett med prestasjonsdimensjoner (metrikker), f.eks.:
+
+Tidsfremdrift – hvor langt inn i prosjektperioden er vi (basert på startdato/planlagt sluttdato) vs. andel fullførte oppgaver
+Besparelse vs. mål – akkumulert realisert besparelse (effect_entries) vs. målsetting (mål_besparelse_verdi), justert for forventet kurve på dette tidspunktet
+Oppgaveflyt – andel oppgaver som er forfalt (forfallsdato passert, status ≠ Fullført) vs. totalt antall oppgaver
+Aktivitetsnivå – hvor nylig var siste oppføring i aktivitetsloggen (ferskhet på dialog/dokumentasjon – et tegn på om prosjektet er "levende")
+Netto-effekt – besparelse minus registrerte kostnader (cost_entries), som indikator på reell verdi
+
+
+
+Celleverdi: hver celle representerer hvor godt prosjektet scorer på den dimensjonen, normalisert til en skala (f.eks. -100% til +100% avvik fra forventet, eller en 0–100 score)
+
+
+
+VISUELL UTFORMING
+
+
+Grid-layout: prosjekter som rader (med prosjektnavn og forretningsenhet som undertekst til venstre), prestasjonsdimensjoner som kolonner (med ikon + kort tittel som header, f.eks. "Fremdrift", "Besparelse", "Oppgaveflyt", "Aktivitet", "Nettoeffekt")
+Hver celle er et avrundet kvadrat/rektangel med fargeintensitet og -retning basert på avvik fra forventet:
+
+Nøytral/som forventet: lys lilla-tone (avledet av #4A1F55, lav metning) – signalerer "normalt", ikke "dårlig"
+Bedre enn forventet: gradvis overgang mot en dempet, "edel" grønntone (ikke skrikende neon-grønn – tenk salviegrønn/skoggrønn som harmonerer med lilla)
+Verre enn forventet: gradvis overgang mot en dempet varm tone (ravgul → terrakotta/rød for store avvik)
+Bruk en jevn, kontinuerlig fargeskala (5–7 trinn interpolert), ikke harde fargesprang
+
+
+
+Vis en kort verdi i cellen (f.eks. "+8%" eller "-15%"), sentrert, med lesbar kontrastfarge
+Hover-effekt: elegant tooltip med konkrete underliggende tall – f.eks. for "Besparelse vs. mål": "Realisert: 320.000 kr · Forventet på dette tidspunktet: 350.000 kr · Mål: 500.000 kr"
+Radsum/total: en kolonne til høyre som viser en samlet prestasjonsscore per prosjekt (vektet snitt av de 5 dimensjonene), visualisert som en kompakt sirkel/donut eller fargemerket badge med tekst ("På sporet" / "Følg opp" / "Krever oppfølging")
+Kolonnesnitt: en rad nederst som viser gjennomsnittlig score per dimensjon på tvers av alle prosjekter – nyttig for å se om "hele porteføljen sliter med oppgaveflyt", for eksempel
+Subtile myke skygger og avrundede hjørner på hele heatmap-containeren, god padding/whitespace rundt selve gridet
+Sortering: mulighet for å sortere rader etter total prestasjonsscore (best/dårligst), alfabetisk, eller etter forretningsenhet, via en enkel dropdown
+
+
+
+INTERAKTIVITET (DRILL-DOWN)
+
+
+Klikk på en celle navigerer til den relevante delen av prosjektets detaljside/dashbord – f.eks. klikk på "Besparelse vs. mål"-cellen åpner prosjektets besparelseskort/graf, klikk på "Oppgaveflyt"-cellen åpner oppgavelisten filtrert på forfalte oppgaver
+Klikk på en radheader (prosjektnavn) navigerer til prosjektets detaljside (oversiktsfanen)
+Klikk på totalscore-badgen navigerer til prosjektets dashbord-fane
+
+
+
+BEREGNINGSLOGIKK
+
+Beregningene skal være enkle og transparente (ikke en "svart boks"), og de underliggende tallene skal alltid være synlige i tooltip:
+
+
+Forventet fremdrift på et gitt tidspunkt beregnes lineært: (dager siden start) / (totalt antall dager i prosjektperioden), sammenlignet med faktisk andel fullførte oppgaver
+Forventet besparelse på et gitt tidspunkt beregnes lineært mot mål_dato, sammenlignet med faktisk akkumulert effect_entries
+Oppgaveflyt-score = 1 - (antall forfalte oppgaver / totalt antall åpne oppgaver)
+Aktivitetsnivå-score basert på dager siden siste aktivitetslogg-oppføring (f.eks. <7 dager = høy score, >30 dager = lav score)
+Nettoeffekt = akkumulert besparelse minus akkumulerte kostnader, vist som beløp og som andel av målsetting
+
+
+Total prestasjonsscore = vektet snitt, med konfigurerbare vekter (default: lik vekting av alle 5 dimensjoner). Vektene kan eventuelt justeres i en enkel innstilling for admin.
+
+
+TOMME TILSTANDER OG EDGE CASES
+
+
+Hvis et prosjekt mangler data for en dimensjon (f.eks. ingen effect_entries registrert ennå), vis cellen som nøytral/grå med tekst "Ingen data" i tooltip, ikke som et negativt avvik
+Hvis ingen prosjekter finnes: vis en hjelpsom melding med illustrasjon/ikon i samme stil som resten av appens tomme tilstander
+Hvis mange prosjekter (gridet blir høyt): sørg for at radhøyden forblir kompakt og at sticky kolonneheader holder dimensjonsnavnene synlige ved scroll
+
+
+
+TEKNISK
+
+
+Beregn alle heatmap-data og scorer på serversiden (aggregerte spørringer mot projects, tasks, effect_entries, cost_entries, activity_log), ikke i frontend – for ytelse og for å sikre at logikken er konsistent med øvrige dashbord
+Bruk samme fargevariabler/Tailwind-konfigurasjon som resten av appen for den lilla "nøytral"-tonen, men definer en ny, harmonisk grønn/rav/terrakotta-skala for avviksindikasjon
+
+

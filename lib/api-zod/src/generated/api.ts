@@ -869,6 +869,67 @@ export const GetSavingsByProjectResponse = zod.array(GetSavingsByProjectResponse
 
 
 /**
+ * @summary Performance heatmap across all projects and metric dimensions
+ */
+export const GetPortfolioHeatmapQueryParams = zod.object({
+  "statuses": zod.coerce.string().optional().describe('Comma-separated list of statuses to include (default pagaende,pause)')
+})
+
+export const GetPortfolioHeatmapResponse = zod.object({
+  "rows": zod.array(zod.object({
+  "projectId": zod.number(),
+  "projectName": zod.string(),
+  "businessUnit": zod.string().nullish(),
+  "status": zod.string(),
+  "timeProgress": zod.object({
+  "score": zod.number().describe('0–100 score (100 = best)'),
+  "deviation": zod.number().describe('-100 to +100 deviation from expected'),
+  "displayValue": zod.string().describe('Short display string e.g. \"+8%\" or \"3 d\"'),
+  "hasData": zod.boolean(),
+  "tooltipLines": zod.array(zod.string()).optional()
+}),
+  "savingsVsGoal": zod.object({
+  "score": zod.number().describe('0–100 score (100 = best)'),
+  "deviation": zod.number().describe('-100 to +100 deviation from expected'),
+  "displayValue": zod.string().describe('Short display string e.g. \"+8%\" or \"3 d\"'),
+  "hasData": zod.boolean(),
+  "tooltipLines": zod.array(zod.string()).optional()
+}),
+  "taskFlow": zod.object({
+  "score": zod.number().describe('0–100 score (100 = best)'),
+  "deviation": zod.number().describe('-100 to +100 deviation from expected'),
+  "displayValue": zod.string().describe('Short display string e.g. \"+8%\" or \"3 d\"'),
+  "hasData": zod.boolean(),
+  "tooltipLines": zod.array(zod.string()).optional()
+}),
+  "activityLevel": zod.object({
+  "score": zod.number().describe('0–100 score (100 = best)'),
+  "deviation": zod.number().describe('-100 to +100 deviation from expected'),
+  "displayValue": zod.string().describe('Short display string e.g. \"+8%\" or \"3 d\"'),
+  "hasData": zod.boolean(),
+  "tooltipLines": zod.array(zod.string()).optional()
+}),
+  "netEffect": zod.object({
+  "score": zod.number().describe('0–100 score (100 = best)'),
+  "deviation": zod.number().describe('-100 to +100 deviation from expected'),
+  "displayValue": zod.string().describe('Short display string e.g. \"+8%\" or \"3 d\"'),
+  "hasData": zod.boolean(),
+  "tooltipLines": zod.array(zod.string()).optional()
+}),
+  "totalScore": zod.number(),
+  "totalLabel": zod.string()
+})),
+  "columnAverages": zod.object({
+  "timeProgress": zod.number(),
+  "savingsVsGoal": zod.number(),
+  "taskFlow": zod.number(),
+  "activityLevel": zod.number(),
+  "netEffect": zod.number()
+})
+})
+
+
+/**
  * @summary Generate AI status summary for a project
  */
 export const GenerateProjectSummaryParams = zod.object({

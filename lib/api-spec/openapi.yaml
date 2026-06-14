@@ -956,6 +956,26 @@ paths:
                 items:
                   $ref: "#/components/schemas/ProjectSavings"
 
+  /portfolio/heatmap:
+    get:
+      operationId: getPortfolioHeatmap
+      tags: [portfolio]
+      summary: Performance heatmap across all projects and metric dimensions
+      parameters:
+        - name: statuses
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Comma-separated list of statuses to include (default pagaende,pause)
+      responses:
+        "200":
+          description: Heatmap data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortfolioHeatmap"
+
   # ─── AI Features ──────────────────────────────────────────────────
   /ai/project-summary/{projectId}:
     post:
@@ -1716,6 +1736,76 @@ components:
           type: number
         target:
           type: number
+
+    HeatmapMetric:
+      type: object
+      required: [score, deviation, displayValue, hasData]
+      properties:
+        score:
+          type: number
+          description: 0–100 score (100 = best)
+        deviation:
+          type: number
+          description: -100 to +100 deviation from expected
+        displayValue:
+          type: string
+          description: Short display string e.g. "+8%" or "3 d"
+        hasData:
+          type: boolean
+        tooltipLines:
+          type: array
+          items:
+            type: string
+
+    HeatmapRow:
+      type: object
+      required: [projectId, projectName, status, timeProgress, savingsVsGoal, taskFlow, activityLevel, netEffect, totalScore, totalLabel]
+      properties:
+        projectId:
+          type: integer
+        projectName:
+          type: string
+        businessUnit:
+          type: ["string", "null"]
+        status:
+          type: string
+        timeProgress:
+          $ref: "#/components/schemas/HeatmapMetric"
+        savingsVsGoal:
+          $ref: "#/components/schemas/HeatmapMetric"
+        taskFlow:
+          $ref: "#/components/schemas/HeatmapMetric"
+        activityLevel:
+          $ref: "#/components/schemas/HeatmapMetric"
+        netEffect:
+          $ref: "#/components/schemas/HeatmapMetric"
+        totalScore:
+          type: number
+        totalLabel:
+          type: string
+
+    PortfolioHeatmap:
+      type: object
+      required: [rows, columnAverages]
+      properties:
+        rows:
+          type: array
+          items:
+            $ref: "#/components/schemas/HeatmapRow"
+        columnAverages:
+          type: object
+          required: [timeProgress, savingsVsGoal, taskFlow, activityLevel, netEffect]
+          properties:
+            timeProgress:
+              type: number
+            savingsVsGoal:
+              type: number
+            taskFlow:
+              type: number
+            activityLevel:
+              type: number
+            netEffect:
+              type: number
 
     # ─── AI Schemas ──────────────────────────────────────────────────
     AiSummaryResult:

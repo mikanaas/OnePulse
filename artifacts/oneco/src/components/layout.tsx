@@ -9,7 +9,8 @@ import {
   LogOut, 
   Menu,
   MessageSquare,
-  Sparkles
+  Sparkles,
+  LayoutGrid,
 } from "lucide-react";
 import {
   Sidebar,
@@ -48,6 +49,7 @@ function NavContent() {
     { title: "Portefølje", icon: LayoutDashboard, href: "/portfolio" },
     { title: "Prosjekter", icon: Briefcase, href: "/projects" },
     { title: "Mitt arbeid", icon: CheckSquare, href: "/my-work" },
+    { title: "Prosjektoversikt", icon: LayoutGrid, href: "/prosjektoversikt" },
     { title: "AI-analyse", icon: Sparkles, href: "/ai-analyse" },
   ];
 

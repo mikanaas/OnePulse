@@ -31,6 +31,7 @@ import type {
   EffectEntry,
   EffectInput,
   EffectUpdate,
+  GetPortfolioHeatmapParams,
   HealthStatus,
   LinkInput,
   ListActivityParams,
@@ -41,6 +42,7 @@ import type {
   ParseEffectInput,
   ParsedEffect,
   PortfolioAnalysis,
+  PortfolioHeatmap,
   PortfolioQuery,
   PortfolioStats,
   Project,
@@ -3391,6 +3393,90 @@ export function useGetSavingsByProject<TData = Awaited<ReturnType<typeof getSavi
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetSavingsByProjectQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPortfolioHeatmapUrl = (params?: GetPortfolioHeatmapParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/portfolio/heatmap?${stringifiedParams}` : `/api/portfolio/heatmap`
+}
+
+/**
+ * @summary Performance heatmap across all projects and metric dimensions
+ */
+export const getPortfolioHeatmap = async (params?: GetPortfolioHeatmapParams, options?: RequestInit): Promise<PortfolioHeatmap> => {
+
+  return customFetch<PortfolioHeatmap>(getGetPortfolioHeatmapUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPortfolioHeatmapQueryKey = (params?: GetPortfolioHeatmapParams,) => {
+    return [
+    `/api/portfolio/heatmap`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetPortfolioHeatmapQueryOptions = <TData = Awaited<ReturnType<typeof getPortfolioHeatmap>>, TError = ErrorType<unknown>>(params?: GetPortfolioHeatmapParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioHeatmap>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPortfolioHeatmapQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPortfolioHeatmap>>> = ({ signal }) => getPortfolioHeatmap(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPortfolioHeatmap>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPortfolioHeatmapQueryResult = NonNullable<Awaited<ReturnType<typeof getPortfolioHeatmap>>>
+export type GetPortfolioHeatmapQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Performance heatmap across all projects and metric dimensions
+ */
+
+export function useGetPortfolioHeatmap<TData = Awaited<ReturnType<typeof getPortfolioHeatmap>>, TError = ErrorType<unknown>>(
+ params?: GetPortfolioHeatmapParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioHeatmap>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPortfolioHeatmapQueryOptions(params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

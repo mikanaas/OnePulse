@@ -651,6 +651,45 @@ export interface ProjectSavings {
   target: number;
 }
 
+export interface HeatmapMetric {
+  /** 0–100 score (100 = best) */
+  score: number;
+  /** -100 to +100 deviation from expected */
+  deviation: number;
+  /** Short display string e.g. "+8%" or "3 d" */
+  displayValue: string;
+  hasData: boolean;
+  tooltipLines?: string[];
+}
+
+export interface HeatmapRow {
+  projectId: number;
+  projectName: string;
+  /** @nullable */
+  businessUnit?: string | null;
+  status: string;
+  timeProgress: HeatmapMetric;
+  savingsVsGoal: HeatmapMetric;
+  taskFlow: HeatmapMetric;
+  activityLevel: HeatmapMetric;
+  netEffect: HeatmapMetric;
+  totalScore: number;
+  totalLabel: string;
+}
+
+export type PortfolioHeatmapColumnAverages = {
+  timeProgress: number;
+  savingsVsGoal: number;
+  taskFlow: number;
+  activityLevel: number;
+  netEffect: number;
+};
+
+export interface PortfolioHeatmap {
+  rows: HeatmapRow[];
+  columnAverages: PortfolioHeatmapColumnAverages;
+}
+
 export interface AiSummaryResult {
   summary: string;
   activityId: number;
@@ -928,6 +967,13 @@ status?: string;
 
 export type ListActivityParams = {
 type?: string;
+};
+
+export type GetPortfolioHeatmapParams = {
+/**
+ * Comma-separated list of statuses to include (default pagaende,pause)
+ */
+statuses?: string;
 };
 
 export type ListAuditLogParams = {
