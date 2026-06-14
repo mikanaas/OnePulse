@@ -35,7 +35,7 @@ function Logo() {
         <circle cx="15" cy="20" r="10" stroke="#4A1F55" strokeWidth="4" />
         <circle cx="25" cy="20" r="10" stroke="#4A1F55" strokeWidth="4" />
       </svg>
-      <span className="text-xl font-bold text-gray-900 dark:text-gray-100">OneCo</span>
+      <span className="text-xl font-bold text-gray-900 dark:text-gray-100">OnePulse</span>
     </div>
   );
 }

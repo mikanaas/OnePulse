@@ -1,4 +1,4 @@
-# OneCo Porteføljeverktøy
+# OnePulse Porteføljeverktøy
 
 A full-stack Norwegian portfolio management and impact measurement SaaS for teams of 5–20 managing digitalization/AI projects. Authenticated with Clerk, powered by Claude AI, with PDF/Excel export.
 

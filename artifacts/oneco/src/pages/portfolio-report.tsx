@@ -17,7 +17,7 @@ function OnceLogo() {
         <circle cx="20" cy="20" r="9" stroke="white" strokeWidth="2.5" fill="none" />
         <circle cx="20" cy="20" r="3.5" fill="white" />
       </svg>
-      <span className="text-2xl font-bold tracking-tight" style={{ color: BRAND }}>OneCo</span>
+      <span className="text-2xl font-bold tracking-tight" style={{ color: BRAND }}>OnePulse</span>
     </div>
   );
 }

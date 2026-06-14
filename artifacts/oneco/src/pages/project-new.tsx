@@ -109,11 +109,11 @@ export default function ProjectNew() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="OneCo Elektro">OneCo Elektro</SelectItem>
-                          <SelectItem value="OneCo Technologies">OneCo Technologies</SelectItem>
-                          <SelectItem value="OneCo Infra">OneCo Infra</SelectItem>
-                          <SelectItem value="OneCo Networks">OneCo Networks</SelectItem>
-                          <SelectItem value="OneCo Sverige">OneCo Sverige</SelectItem>
+                          <SelectItem value="OnePulse Elektro">OnePulse Elektro</SelectItem>
+                          <SelectItem value="OnePulse Technologies">OnePulse Technologies</SelectItem>
+                          <SelectItem value="OnePulse Infra">OnePulse Infra</SelectItem>
+                          <SelectItem value="OnePulse Networks">OnePulse Networks</SelectItem>
+                          <SelectItem value="OnePulse Sverige">OnePulse Sverige</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />

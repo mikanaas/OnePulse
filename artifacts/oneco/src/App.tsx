@@ -167,6 +167,20 @@ function ClerkProviderWithRoutes() {
       signUpUrl={`${basePath}/sign-up`}
       routerPush={(to) => setLocation(stripBase(to))}
       routerReplace={(to) => setLocation(stripBase(to), { replace: true })}
+      localization={{
+        signIn: {
+          start: {
+            title: "Logg inn på OnePulse",
+            subtitle: "Velkommen tilbake! Logg inn for å fortsette.",
+          },
+        },
+        signUp: {
+          start: {
+            title: "Opprett konto i OnePulse",
+            subtitle: "Kom i gang i dag.",
+          },
+        },
+      }}
     >
       <QueryClientProvider client={queryClient}>
         <ClerkTokenSetter />

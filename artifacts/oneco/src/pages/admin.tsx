@@ -170,7 +170,7 @@ export default function AdminPage() {
                     <AlertDialogHeader>
                       <AlertDialogTitle>Slett alle prosjekter?</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Dette vil permanent slette alle {seedStatus?.projectCount} prosjekter, inkludert oppgaver, effekter, kostnader og aktivitetslogg. Demobukerne (kari@oneco.no osv.) vil også slettes. Handlingen kan ikke angres.
+                        Dette vil permanent slette alle {seedStatus?.projectCount} prosjekter, inkludert oppgaver, effekter, kostnader og aktivitetslogg. Demobukerne vil også slettes. Handlingen kan ikke angres.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

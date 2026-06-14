@@ -11,7 +11,7 @@ export default function Home() {
               <circle cx="15" cy="20" r="10" stroke="#4A1F55" strokeWidth="4" />
               <circle cx="25" cy="20" r="10" stroke="#4A1F55" strokeWidth="4" />
             </svg>
-            <h1 className="text-4xl font-bold tracking-tight text-foreground">OneCo</h1>
+            <h1 className="text-4xl font-bold tracking-tight text-foreground">OnePulse</h1>
           </div>
           <p className="text-xl text-muted-foreground">Porteføljestyring og gevinstrealisering</p>
         </div>
