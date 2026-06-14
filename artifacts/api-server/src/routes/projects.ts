@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "../lib/db";
 import { requireAuth } from "../lib/requireAuth";
-import { projectsTable, projectMembersTable, usersTable } from "@workspace/db";
+import { projectsTable, projectMembersTable, usersTable, tasksTable, effectEntriesTable, costEntriesTable } from "@workspace/db";
 import { eq, and, or, ilike, sql } from "drizzle-orm";
 
 const router = Router();
@@ -34,10 +34,36 @@ router.get("/projects", requireAuth, async (req, res) => {
     .groupBy(projectMembersTable.projectId);
   const memberMap = new Map(memberCounts.map((m) => [m.projectId, m.count]));
 
+  const taskCounts = await db
+    .select({
+      projectId: tasksTable.projectId,
+      total: sql<number>`count(*)::int`,
+      completed: sql<number>`count(*) filter (where ${tasksTable.status} = 'fullfort')::int`,
+    })
+    .from(tasksTable)
+    .groupBy(tasksTable.projectId);
+  const taskMap = new Map(taskCounts.map((t) => [t.projectId, t]));
+
+  const effectTotals = await db
+    .select({ projectId: effectEntriesTable.projectId, total: sql<number>`coalesce(sum(${effectEntriesTable.value}), 0)` })
+    .from(effectEntriesTable)
+    .groupBy(effectEntriesTable.projectId);
+  const effectMap = new Map(effectTotals.map((e) => [e.projectId, Number(e.total)]));
+
+  const costTotals = await db
+    .select({ projectId: costEntriesTable.projectId, total: sql<number>`coalesce(sum(${costEntriesTable.value}), 0)` })
+    .from(costEntriesTable)
+    .groupBy(costEntriesTable.projectId);
+  const costMap = new Map(costTotals.map((c) => [c.projectId, Number(c.total)]));
+
   res.json(rows.map(({ project, ownerName }) => ({
     ...project,
     ownerName: ownerName ?? null,
     memberCount: memberMap.get(project.id) ?? 0,
+    taskCount: taskMap.get(project.id)?.total ?? 0,
+    completedTaskCount: taskMap.get(project.id)?.completed ?? 0,
+    totalSavings: effectMap.get(project.id) ?? 0,
+    totalCosts: costMap.get(project.id) ?? 0,
   })));
 });
 
