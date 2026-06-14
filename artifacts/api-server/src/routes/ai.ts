@@ -126,6 +126,14 @@ Tekst: "${text}"
 
 Returner KUN gyldig JSON, ingen annen tekst.`;
 
+  const fallback = {
+    description: text.slice(0, 80),
+    value: 0,
+    unit: "kr",
+    type: "engangs",
+    confidenceLevel: "middels",
+    date: new Date().toISOString().slice(0, 10),
+  };
   try {
     const client = getClient();
     const message = await client.messages.create({
@@ -134,19 +142,18 @@ Returner KUN gyldig JSON, ingen annen tekst.`;
       messages: [{ role: "user", content: prompt }],
     });
     const raw = message.content[0].type === "text" ? message.content[0].text : "{}";
-    const parsed = JSON.parse(raw);
-    res.json(parsed);
+    // Strip markdown code fences Claude sometimes adds
+    const cleaned = raw.replace(/^```(?:json)?\s*/m, "").replace(/\s*```$/m, "").trim();
+    try {
+      const parsed = JSON.parse(cleaned);
+      res.json(parsed);
+    } catch (parseErr) {
+      logger.error({ parseErr, raw }, "AI effect parse: JSON parse failed, using fallback");
+      res.json(fallback);
+    }
   } catch (err) {
     logger.error({ err }, "AI effect parse failed");
-    res.status(500).json({
-      error: "AI not available",
-      description: text.slice(0, 80),
-      value: 0,
-      unit: "kr",
-      type: "engangs",
-      confidenceLevel: "middels",
-      date: new Date().toISOString().slice(0, 10),
-    });
+    res.json(fallback);
   }
 });
 
