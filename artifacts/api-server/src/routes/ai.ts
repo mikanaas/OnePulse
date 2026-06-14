@@ -109,8 +109,8 @@ ${portfolioSummary}`;
   }
 });
 
-// POST /api/ai/effects/parse
-router.post("/ai/effects/parse", requireAuth, async (req, res) => {
+// POST /api/ai/parse-effect
+router.post("/ai/parse-effect", requireAuth, async (req, res) => {
   const { text } = req.body as { text: string };
   if (!text) { res.status(400).json({ error: "text required" }); return; }
 
