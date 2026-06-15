@@ -278,7 +278,7 @@ export default function ProjectOverviewPage() {
                     <AvgCell score={avgs.timeProgress} />
                     <AvgCell score={avgs.savingsVsGoal} />
                     <AvgCell score={avgs.taskFlow} />
-                    <AvgCell score={avgs.activityLevel} />
+                    <div className="w-full h-10 rounded-lg flex items-center justify-center text-xs font-bold border bg-gray-100 text-gray-400 border-gray-200">–</div>
                     <AvgCell score={avgs.netEffect} />
                     <div />
                   </div>
