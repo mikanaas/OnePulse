@@ -227,7 +227,7 @@ export default function ProjectOverviewPage() {
                         </div>
                       </Tooltip>
                     ))}
-                    <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide text-right pr-1">Totalskåre</div>
+                    <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide text-right pr-1">Totalscore</div>
                   </div>
                 </div>
 
