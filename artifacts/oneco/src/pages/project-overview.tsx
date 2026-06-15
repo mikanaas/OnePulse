@@ -11,6 +11,7 @@ import {
   Zap,
   LayoutGrid,
   Loader2,
+  ShieldAlert,
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -31,21 +32,16 @@ function scoreToColor(score: number, hasData: boolean): { bg: string; text: stri
   return { bg: "#FEE2E2", text: "#991B1B", border: "#FCA5A5" };
 }
 
-function TotalBadge({ score, label }: { score: number; label: string }) {
+function TotalBadge({ score, label, onClick }: { score: number; label: string; onClick: () => void }) {
   const { bg, text, border } = scoreToColor(score, true);
   return (
-    <div
-      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap border"
+    <button
+      onClick={onClick}
+      className="w-full h-12 rounded-lg flex items-center justify-center text-xs font-semibold transition-all hover:scale-105 hover:shadow-md border cursor-pointer select-none"
       style={{ backgroundColor: bg, color: text, borderColor: border }}
     >
-      <span
-        className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0"
-        style={{ backgroundColor: text + "22", color: text }}
-      >
-        {score}
-      </span>
       {label}
-    </div>
+    </button>
   );
 }
 
@@ -233,7 +229,12 @@ export default function ProjectOverviewPage() {
                         </div>
                       </Tooltip>
                     ))}
-                    <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide text-right pr-1">Prosjektstatus</div>
+                    <Tooltip lines={["Samlet risikovurdering basert på fremdrift, besparelse, oppgaveflyt, aktivitet og nettoeffekt"]}>
+                      <div className="flex flex-col items-center gap-1 cursor-default">
+                        <ShieldAlert className="h-4 w-4" style={{ color: BRAND }} />
+                        <span className="text-xs font-semibold text-gray-600">Prosjektstatus</span>
+                      </div>
+                    </Tooltip>
                   </div>
                 </div>
 
@@ -265,11 +266,7 @@ export default function ProjectOverviewPage() {
                         />
                       ))}
 
-                      <div className="flex justify-end">
-                        <button onClick={() => navigate(`/projects/${row.projectId}`)}>
-                          <TotalBadge score={row.totalScore} label={row.totalLabel} />
-                        </button>
-                      </div>
+                      <TotalBadge score={row.totalScore} label={row.totalLabel} onClick={() => navigate(`/projects/${row.projectId}`)} />
                     </div>
                   ))}
                 </div>
