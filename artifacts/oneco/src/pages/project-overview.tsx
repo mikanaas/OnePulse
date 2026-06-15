@@ -81,14 +81,14 @@ function Cell({ metric, onClick }: { metric: HeatmapMetric; onClick: () => void 
   );
 }
 
-function AvgCell({ score }: { score: number }) {
+function AvgCell({ score, showValue = true }: { score: number; showValue?: boolean }) {
   const { bg, text, border } = scoreToColor(score, true);
   return (
     <div
       className="w-full h-10 rounded-lg flex items-center justify-center text-xs font-bold border"
       style={{ backgroundColor: bg, color: text, borderColor: border }}
     >
-      {score}%
+      {showValue ? `${score}%` : null}
     </div>
   );
 }
@@ -278,7 +278,7 @@ export default function ProjectOverviewPage() {
                     <AvgCell score={avgs.timeProgress} />
                     <AvgCell score={avgs.savingsVsGoal} />
                     <AvgCell score={avgs.taskFlow} />
-                    <div className="w-full h-10 rounded-lg flex items-center justify-center text-xs font-bold border bg-gray-100 text-gray-400 border-gray-200">–</div>
+                    <AvgCell score={avgs.activityLevel} showValue={false} />
                     <AvgCell score={avgs.netEffect} />
                     <div />
                   </div>
