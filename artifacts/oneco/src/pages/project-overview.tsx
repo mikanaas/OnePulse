@@ -20,7 +20,7 @@ const BRAND = "#4A1F55";
 const COL_WIDTHS = "220px 120px 120px 120px 120px 120px 170px";
 
 function scoreToColor(score: number, hasData: boolean): { bg: string; text: string; border: string } {
-  if (!hasData) return { bg: "#F3F4F6", text: "#9CA3AF", border: "#E5E7EB" };
+  if (!hasData) return { bg: "#EFF6FF", text: "#3B82F6", border: "#BFDBFE" };
   const s = Math.max(0, Math.min(100, score));
   if (s >= 80) return { bg: "#D1FAE5", text: "#065F46", border: "#6EE7B7" };
   if (s >= 65) return { bg: "#ECFDF5", text: "#047857", border: "#A7F3D0" };

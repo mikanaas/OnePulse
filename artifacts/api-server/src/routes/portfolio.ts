@@ -127,7 +127,7 @@ type Metric = {
 };
 
 function noData(): Metric {
-  return { score: 50, deviation: 0, displayValue: "–", hasData: false, tooltipLines: ["Ingen data"] };
+  return { score: 50, deviation: 0, displayValue: "Ikke påbegynt", hasData: false, tooltipLines: ["Ingen data"] };
 }
 
 function activityScore(daysSince: number): number {
