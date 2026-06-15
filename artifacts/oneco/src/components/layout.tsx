@@ -31,9 +31,18 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 function Logo() {
   return (
     <div className="flex items-center gap-2 px-2 py-4">
-      <svg width="32" height="32" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="15" cy="20" r="10" stroke="#4A1F55" strokeWidth="4" />
-        <circle cx="25" cy="20" r="10" stroke="#4A1F55" strokeWidth="4" />
+      <svg width="36" height="28" viewBox="0 0 50 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <mask id="logo-mask-nav">
+            <rect width="50" height="36" fill="white"/>
+            <circle cx="33" cy="18" r="15" fill="black"/>
+          </mask>
+        </defs>
+        <g mask="url(#logo-mask-nav)">
+          <circle cx="17" cy="18" r="14" fill="#4A1F55"/>
+          <circle cx="17" cy="18" r="7" fill="white"/>
+        </g>
+        <circle cx="33" cy="18" r="14" stroke="#1a1a1a" strokeWidth="5.5" fill="none"/>
       </svg>
       <span className="text-xl font-bold text-gray-900 dark:text-gray-100">OnePulse</span>
     </div>

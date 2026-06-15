@@ -1,3 +1,14 @@
 <svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect width="180" height="180" rx="36" fill="#FF3C00"/>
+  <rect width="180" height="180" rx="36" fill="white"/>
+  <defs>
+    <mask id="favicon-mask">
+      <rect width="180" height="180" fill="white"/>
+      <circle cx="108" cy="90" r="56" fill="black"/>
+    </mask>
+  </defs>
+  <g mask="url(#favicon-mask)">
+    <circle cx="72" cy="90" r="52" fill="#4A1F55"/>
+    <circle cx="72" cy="90" r="26" fill="white"/>
+  </g>
+  <circle cx="108" cy="90" r="52" stroke="#1a1a1a" strokeWidth="21" fill="none"/>
 </svg>
