@@ -167,7 +167,7 @@ export default function ProjectOverviewPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="score">Sorter: Prosjekthelse</SelectItem>
+                <SelectItem value="score">Sorter: Prosjektstatus</SelectItem>
                 <SelectItem value="name">Sorter: Alfabetisk</SelectItem>
                 <SelectItem value="unit">Sorter: Enhet</SelectItem>
               </SelectContent>
@@ -227,7 +227,7 @@ export default function ProjectOverviewPage() {
                         </div>
                       </Tooltip>
                     ))}
-                    <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide text-right pr-1">Prosjekthelse</div>
+                    <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide text-right pr-1">Prosjektstatus</div>
                   </div>
                 </div>
 
