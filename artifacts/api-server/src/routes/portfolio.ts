@@ -142,9 +142,9 @@ function activityScore(daysSince: number): number {
 }
 
 function totalLabel(score: number): string {
-  if (score >= 70) return "På sporet";
-  if (score >= 45) return "Følg opp";
-  return "Krever oppfølging";
+  if (score >= 70) return "Lav risiko";
+  if (score >= 45) return "Noe risiko";
+  return "Høy risiko";
 }
 
 // GET /api/portfolio/heatmap
