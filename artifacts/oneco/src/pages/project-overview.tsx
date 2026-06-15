@@ -81,16 +81,22 @@ function Cell({ metric, onClick }: { metric: HeatmapMetric; onClick: () => void 
   );
 }
 
-function AvgCell({ score, showValue = true }: { score: number; showValue?: boolean }) {
+function AvgCell({ score, label }: { score: number; label?: string }) {
   const { bg, text, border } = scoreToColor(score, true);
   return (
     <div
       className="w-full h-10 rounded-lg flex items-center justify-center text-xs font-bold border"
       style={{ backgroundColor: bg, color: text, borderColor: border }}
     >
-      {showValue ? `${score}%` : null}
+      {label ?? `${score}%`}
     </div>
   );
+}
+
+function activityLabel(score: number): string {
+  if (score >= 52) return "Høy aktivitet";
+  if (score >= 30) return "Noe aktivitet";
+  return "Lav aktivitet";
 }
 
 const COLS: { key: keyof HeatmapRow; label: string; icon: React.ElementType; desc: string }[] = [
@@ -278,7 +284,7 @@ export default function ProjectOverviewPage() {
                     <AvgCell score={avgs.timeProgress} />
                     <AvgCell score={avgs.savingsVsGoal} />
                     <AvgCell score={avgs.taskFlow} />
-                    <AvgCell score={avgs.activityLevel} showValue={false} />
+                    <AvgCell score={avgs.activityLevel} label={activityLabel(avgs.activityLevel)} />
                     <AvgCell score={avgs.netEffect} />
                     <div />
                   </div>
