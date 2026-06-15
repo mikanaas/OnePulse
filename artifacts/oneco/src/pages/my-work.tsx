@@ -14,7 +14,7 @@ export default function MyWorkPage() {
     <AppLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Mitt arbeid</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Mine oppgaver</h1>
           <p className="text-muted-foreground">Oversikt over dine tildelte oppgaver.</p>
         </div>
 
