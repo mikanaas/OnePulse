@@ -931,6 +931,138 @@ export interface ProjectGovernanceInput {
   dpiaLink?: string | null;
 }
 
+export type ProposalType = typeof ProposalType[keyof typeof ProposalType];
+
+
+export const ProposalType = {
+  problem: 'problem',
+  solution: 'solution',
+} as const;
+
+export type ProposalUrgency = typeof ProposalUrgency[keyof typeof ProposalUrgency];
+
+
+export const ProposalUrgency = {
+  høy: 'høy',
+  lav: 'lav',
+} as const;
+
+export type ProposalImportance = typeof ProposalImportance[keyof typeof ProposalImportance];
+
+
+export const ProposalImportance = {
+  høy: 'høy',
+  lav: 'lav',
+} as const;
+
+export type ProposalStatus = typeof ProposalStatus[keyof typeof ProposalStatus];
+
+
+export const ProposalStatus = {
+  ny: 'ny',
+  vurdert: 'vurdert',
+  konvertert: 'konvertert',
+} as const;
+
+export interface Proposal {
+  id: number;
+  title: string;
+  description: string;
+  type: ProposalType;
+  /** @nullable */
+  solutionDescription?: string | null;
+  urgency: ProposalUrgency;
+  importance: ProposalImportance;
+  status: ProposalStatus;
+  /** @nullable */
+  submittedBy?: number | null;
+  /** @nullable */
+  submittedByName?: string | null;
+  /** @nullable */
+  convertedToProjectId?: number | null;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export type ProposalInputType = typeof ProposalInputType[keyof typeof ProposalInputType];
+
+
+export const ProposalInputType = {
+  problem: 'problem',
+  solution: 'solution',
+} as const;
+
+export type ProposalInputUrgency = typeof ProposalInputUrgency[keyof typeof ProposalInputUrgency];
+
+
+export const ProposalInputUrgency = {
+  høy: 'høy',
+  lav: 'lav',
+} as const;
+
+export type ProposalInputImportance = typeof ProposalInputImportance[keyof typeof ProposalInputImportance];
+
+
+export const ProposalInputImportance = {
+  høy: 'høy',
+  lav: 'lav',
+} as const;
+
+export interface ProposalInput {
+  /** @minLength 1 */
+  title: string;
+  /** @minLength 1 */
+  description: string;
+  type: ProposalInputType;
+  solutionDescription?: string;
+  urgency: ProposalInputUrgency;
+  importance: ProposalInputImportance;
+}
+
+export type ProposalUpdateUrgency = typeof ProposalUpdateUrgency[keyof typeof ProposalUpdateUrgency];
+
+
+export const ProposalUpdateUrgency = {
+  høy: 'høy',
+  lav: 'lav',
+} as const;
+
+export type ProposalUpdateImportance = typeof ProposalUpdateImportance[keyof typeof ProposalUpdateImportance];
+
+
+export const ProposalUpdateImportance = {
+  høy: 'høy',
+  lav: 'lav',
+} as const;
+
+export type ProposalUpdateStatus = typeof ProposalUpdateStatus[keyof typeof ProposalUpdateStatus];
+
+
+export const ProposalUpdateStatus = {
+  ny: 'ny',
+  vurdert: 'vurdert',
+  konvertert: 'konvertert',
+} as const;
+
+export interface ProposalUpdate {
+  /** @minLength 1 */
+  title?: string;
+  description?: string;
+  /** @nullable */
+  solutionDescription?: string | null;
+  urgency?: ProposalUpdateUrgency;
+  importance?: ProposalUpdateImportance;
+  status?: ProposalUpdateStatus;
+}
+
+export interface ProposalConvertInput {
+  /** @minLength 1 */
+  name: string;
+  description?: string;
+  businessUnit?: string;
+  goalText?: string;
+}
+
 /**
  * @nullable
  */
@@ -980,5 +1112,15 @@ statuses?: string;
 export type ListAuditLogParams = {
 limit?: number;
 offset?: number;
+};
+
+export type ListProposalsParams = {
+status?: string;
+urgency?: string;
+importance?: string;
+};
+
+export type ConvertProposal201 = {
+  projectId: number;
 };
 

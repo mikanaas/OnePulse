@@ -1047,3 +1047,109 @@ export const ListAuditLogResponseItem = zod.object({
 export const ListAuditLogResponse = zod.array(ListAuditLogResponseItem)
 
 
+/**
+ * @summary List improvement proposals
+ */
+export const ListProposalsQueryParams = zod.object({
+  "status": zod.coerce.string().optional(),
+  "urgency": zod.coerce.string().optional(),
+  "importance": zod.coerce.string().optional()
+})
+
+export const ListProposalsResponseItem = zod.object({
+  "id": zod.number(),
+  "title": zod.string(),
+  "description": zod.string(),
+  "type": zod.enum(['problem', 'solution']),
+  "solutionDescription": zod.string().nullish(),
+  "urgency": zod.enum(['høy', 'lav']),
+  "importance": zod.enum(['høy', 'lav']),
+  "status": zod.enum(['ny', 'vurdert', 'konvertert']),
+  "submittedBy": zod.number().nullish(),
+  "submittedByName": zod.string().nullish(),
+  "convertedToProjectId": zod.number().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string().optional()
+})
+export const ListProposalsResponse = zod.array(ListProposalsResponseItem)
+
+
+/**
+ * @summary Submit a new improvement proposal
+ */
+
+
+
+
+export const CreateProposalBody = zod.object({
+  "title": zod.string().min(1),
+  "description": zod.string().min(1),
+  "type": zod.enum(['problem', 'solution']),
+  "solutionDescription": zod.string().optional(),
+  "urgency": zod.enum(['høy', 'lav']),
+  "importance": zod.enum(['høy', 'lav'])
+})
+
+
+/**
+ * @summary Update a proposal
+ */
+export const UpdateProposalParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+
+
+export const UpdateProposalBody = zod.object({
+  "title": zod.string().min(1).optional(),
+  "description": zod.string().optional(),
+  "solutionDescription": zod.string().nullish(),
+  "urgency": zod.enum(['høy', 'lav']).optional(),
+  "importance": zod.enum(['høy', 'lav']).optional(),
+  "status": zod.enum(['ny', 'vurdert', 'konvertert']).optional()
+})
+
+export const UpdateProposalResponse = zod.object({
+  "id": zod.number(),
+  "title": zod.string(),
+  "description": zod.string(),
+  "type": zod.enum(['problem', 'solution']),
+  "solutionDescription": zod.string().nullish(),
+  "urgency": zod.enum(['høy', 'lav']),
+  "importance": zod.enum(['høy', 'lav']),
+  "status": zod.enum(['ny', 'vurdert', 'konvertert']),
+  "submittedBy": zod.number().nullish(),
+  "submittedByName": zod.string().nullish(),
+  "convertedToProjectId": zod.number().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string().optional()
+})
+
+
+/**
+ * @summary Delete a proposal
+ */
+export const DeleteProposalParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Convert a proposal to a project
+ */
+export const ConvertProposalParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+
+
+export const ConvertProposalBody = zod.object({
+  "name": zod.string().min(1),
+  "description": zod.string().optional(),
+  "businessUnit": zod.string().optional(),
+  "goalText": zod.string().optional()
+})
+
+

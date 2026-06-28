@@ -6,3 +6,4 @@ export * from "./effects";
 export * from "./links";
 export * from "./audit";
 export * from "./governance";
+export * from "./proposals";

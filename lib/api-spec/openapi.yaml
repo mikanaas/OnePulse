@@ -32,6 +32,8 @@ tags:
     description: Reporting and export
   - name: audit
     description: Audit log
+  - name: proposals
+    description: Improvement proposals
 
 paths:
   /healthz:
@@ -1107,6 +1109,119 @@ paths:
                 items:
                   $ref: "#/components/schemas/AuditEntry"
 
+  # ─── Proposals ────────────────────────────────────────────────────
+  /proposals:
+    get:
+      operationId: listProposals
+      tags: [proposals]
+      summary: List improvement proposals
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: urgency
+          in: query
+          schema:
+            type: string
+        - name: importance
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of proposals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Proposal"
+    post:
+      operationId: createProposal
+      tags: [proposals]
+      summary: Submit a new improvement proposal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProposalInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Proposal"
+
+  /proposals/{id}:
+    patch:
+      operationId: updateProposal
+      tags: [proposals]
+      summary: Update a proposal
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProposalUpdate"
+      responses:
+        "200":
+          description: Updated proposal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Proposal"
+    delete:
+      operationId: deleteProposal
+      tags: [proposals]
+      summary: Delete a proposal
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /proposals/{id}/convert:
+    post:
+      operationId: convertProposal
+      tags: [proposals]
+      summary: Convert a proposal to a project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProposalConvertInput"
+      responses:
+        "201":
+          description: Created project id
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [projectId]
+                properties:
+                  projectId:
+                    type: integer
+
 components:
   schemas:
     HealthStatus:
@@ -2034,6 +2149,98 @@ components:
           enum: ["under_vurdering", "godkjent_pilot", "godkjent_produksjon", "amnesti", "avvikling", null]
         dpiaLink:
           type: ["string", "null"]
+
+    # ─── Proposal Schemas ────────────────────────────────────────────
+    Proposal:
+      type: object
+      required: [id, title, description, type, urgency, importance, status, createdAt]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+          enum: [problem, solution]
+        solutionDescription:
+          type: ["string", "null"]
+        urgency:
+          type: string
+          enum: [høy, lav]
+        importance:
+          type: string
+          enum: [høy, lav]
+        status:
+          type: string
+          enum: [ny, vurdert, konvertert]
+        submittedBy:
+          type: ["integer", "null"]
+        submittedByName:
+          type: ["string", "null"]
+        convertedToProjectId:
+          type: ["integer", "null"]
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    ProposalInput:
+      type: object
+      required: [title, description, type, urgency, importance]
+      properties:
+        title:
+          type: string
+          minLength: 1
+        description:
+          type: string
+          minLength: 1
+        type:
+          type: string
+          enum: [problem, solution]
+        solutionDescription:
+          type: string
+        urgency:
+          type: string
+          enum: [høy, lav]
+        importance:
+          type: string
+          enum: [høy, lav]
+
+    ProposalUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        solutionDescription:
+          type: ["string", "null"]
+        urgency:
+          type: string
+          enum: [høy, lav]
+        importance:
+          type: string
+          enum: [høy, lav]
+        status:
+          type: string
+          enum: [ny, vurdert, konvertert]
+
+    ProposalConvertInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        businessUnit:
+          type: string
+        goalText:
+          type: string
 
     # ─── Audit Schemas ───────────────────────────────────────────────
     AuditEntry:

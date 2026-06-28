@@ -11,6 +11,7 @@ import {
   MessageSquare,
   Sparkles,
   LayoutGrid,
+  Lightbulb,
 } from "lucide-react";
 import {
   Sidebar,
@@ -58,6 +59,7 @@ function NavContent() {
     { title: "Portefølje", icon: LayoutDashboard, href: "/portfolio" },
     { title: "Prosjekter", icon: Briefcase, href: "/projects" },
     { title: "Mine oppgaver", icon: CheckSquare, href: "/my-work" },
+    { title: "Forbedringsforslag", icon: Lightbulb, href: "/forslag" },
     { title: "Heatmap", icon: LayoutGrid, href: "/prosjektoversikt" },
     { title: "AI-analyse", icon: Sparkles, href: "/ai-analyse" },
   ];
