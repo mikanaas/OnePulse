@@ -47,13 +47,13 @@ const QK = ["proposals"];
 
 type ViewMode = "liste" | "eisenhower";
 
-function eisenhowerQuadrant(urgency: string, importance: string) {
-  const u = urgency === "høy";
-  const i = importance === "høy";
-  if (u && i) return { label: "Gjør det nå", color: "#D1FAE5", border: "#6EE7B7", text: "#065F46", pos: "top-left" };
-  if (!u && i) return { label: "Planlegg det", color: "#EFF6FF", border: "#BFDBFE", text: "#1D4ED8", pos: "top-right" };
-  if (u && !i) return { label: "Deleger", color: "#FEF9C3", border: "#FDE047", text: "#713F12", pos: "bottom-left" };
-  return { label: "Vurder å droppe", color: "#FEE2E2", border: "#FCA5A5", text: "#991B1B", pos: "bottom-right" };
+function matrixQuadrant(effect: string, complexity: string) {
+  const bigEffect = effect === "stor";
+  const easy = complexity === "enkel";
+  if (bigEffect && easy)   return { label: "Lav hengende frukt", color: "#D1FAE5", border: "#6EE7B7", text: "#065F46" };
+  if (bigEffect && !easy)  return { label: "Store satsinger", color: "#EFF6FF", border: "#BFDBFE", text: "#1D4ED8" };
+  if (!bigEffect && easy)  return { label: "Fyll-inn-tiltak", color: "#FEF9C3", border: "#FDE047", text: "#713F12" };
+  return { label: "Vurder å droppe", color: "#FEE2E2", border: "#FCA5A5", text: "#991B1B" };
 }
 
 function statusBadge(status: string) {
@@ -76,7 +76,7 @@ interface ProposalCardProps {
 }
 
 function ProposalCard({ proposal, onEdit, onDelete, onConvert, compact }: ProposalCardProps) {
-  const q = eisenhowerQuadrant(proposal.urgency, proposal.importance);
+  const q = matrixQuadrant(proposal.effect, proposal.complexity);
   return (
     <div
       className="rounded-xl border bg-white p-4 space-y-2 cursor-pointer hover:shadow-md transition-shadow"
@@ -110,39 +110,39 @@ function ProposalCard({ proposal, onEdit, onDelete, onConvert, compact }: Propos
   );
 }
 
-function EisenhowerMatrix({ proposals, onEdit, onDelete, onConvert }: {
+function ProposalMatrix({ proposals, onEdit, onDelete, onConvert }: {
   proposals: Proposal[];
   onEdit: (p: Proposal) => void;
   onDelete: (p: Proposal) => void;
   onConvert: (p: Proposal) => void;
 }) {
   const quadrants = [
-    { urgency: "høy", importance: "høy", label: "Viktig & Haster", sublabel: "Gjør det nå", color: "#D1FAE5", border: "#6EE7B7", text: "#065F46" },
-    { urgency: "lav", importance: "høy", label: "Viktig & Haster ikke", sublabel: "Planlegg det", color: "#EFF6FF", border: "#BFDBFE", text: "#1D4ED8" },
-    { urgency: "høy", importance: "lav", label: "Uviktig & Haster", sublabel: "Deleger", color: "#FEF9C3", border: "#FDE047", text: "#713F12" },
-    { urgency: "lav", importance: "lav", label: "Uviktig & Haster ikke", sublabel: "Vurder å droppe", color: "#FEE2E2", border: "#FCA5A5", text: "#991B1B" },
+    { effect: "stor", complexity: "enkel", label: "Stor effekt · Enkelt å utvikle", sublabel: "Lav hengende frukt", color: "#D1FAE5", border: "#6EE7B7", text: "#065F46" },
+    { effect: "stor", complexity: "krevende", label: "Stor effekt · Krevende å utvikle", sublabel: "Store satsinger", color: "#EFF6FF", border: "#BFDBFE", text: "#1D4ED8" },
+    { effect: "liten", complexity: "enkel", label: "Liten effekt · Enkelt å utvikle", sublabel: "Fyll-inn-tiltak", color: "#FEF9C3", border: "#FDE047", text: "#713F12" },
+    { effect: "liten", complexity: "krevende", label: "Liten effekt · Krevende å utvikle", sublabel: "Vurder å droppe", color: "#FEE2E2", border: "#FCA5A5", text: "#991B1B" },
   ];
 
   return (
     <div className="space-y-2">
-      <div className="grid grid-cols-2 gap-1 text-center text-xs font-semibold text-gray-500 px-2">
-        <div></div>
-        <div className="grid grid-cols-2 gap-1">
-          <div>Haster</div>
-          <div>Haster ikke</div>
+      <div className="grid grid-cols-[auto_1fr]">
+        <div className="w-7" />
+        <div className="grid grid-cols-2 gap-2 text-center text-xs font-semibold text-gray-500 mb-1">
+          <div>Enkelt å utvikle</div>
+          <div>Krevende å utvikle</div>
         </div>
       </div>
       <div className="grid grid-cols-[auto_1fr] gap-1">
-        <div className="flex flex-col text-xs font-semibold text-gray-500 w-6">
-          <div className="flex-1 flex items-center justify-center" style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}>Viktig</div>
-          <div className="flex-1 flex items-center justify-center" style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}>Uviktig</div>
+        <div className="flex flex-col text-xs font-semibold text-gray-500 w-7">
+          <div className="flex-1 flex items-center justify-center" style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}>Stor effekt</div>
+          <div className="flex-1 flex items-center justify-center" style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}>Liten effekt</div>
         </div>
         <div className="grid grid-cols-2 gap-2">
           {quadrants.map((q) => {
-            const items = proposals.filter(p => p.urgency === q.urgency && p.importance === q.importance);
+            const items = proposals.filter(p => p.effect === q.effect && p.complexity === q.complexity);
             return (
               <div
-                key={`${q.urgency}-${q.importance}`}
+                key={`${q.effect}-${q.complexity}`}
                 className="rounded-xl border-2 p-3 min-h-[200px]"
                 style={{ backgroundColor: q.color + "55", borderColor: q.border }}
               >
@@ -172,8 +172,8 @@ interface SubmitFormState {
   description: string;
   type: "problem" | "solution";
   solutionDescription: string;
-  urgency: "høy" | "lav";
-  importance: "høy" | "lav";
+  effect: "stor" | "liten";
+  complexity: "krevende" | "enkel";
 }
 
 const defaultForm: SubmitFormState = {
@@ -181,8 +181,8 @@ const defaultForm: SubmitFormState = {
   description: "",
   type: "problem",
   solutionDescription: "",
-  urgency: "lav",
-  importance: "lav",
+  effect: "liten",
+  complexity: "krevende",
 };
 
 export default function ProposalsPage() {
@@ -223,8 +223,8 @@ export default function ProposalsPage() {
       description: p.description,
       type: p.type as "problem" | "solution",
       solutionDescription: p.solutionDescription ?? "",
-      urgency: p.urgency as "høy" | "lav",
-      importance: p.importance as "høy" | "lav",
+      effect: p.effect as "stor" | "liten",
+      complexity: p.complexity as "krevende" | "enkel",
     });
     setEditProposal(p);
     setShowForm(true);
@@ -239,8 +239,8 @@ export default function ProposalsPage() {
         description: form.description.trim(),
         type: form.type,
         solutionDescription: form.type === "solution" ? form.solutionDescription : undefined,
-        urgency: form.urgency,
-        importance: form.importance,
+        effect: form.effect,
+        complexity: form.complexity,
       };
       if (editProposal) {
         await updateProposal.mutateAsync({ id: editProposal.id, data: payload });
@@ -363,7 +363,7 @@ export default function ProposalsPage() {
         )}
 
         {!isLoading && filtered.length > 0 && view === "eisenhower" && (
-          <EisenhowerMatrix
+          <ProposalMatrix
             proposals={filtered}
             onEdit={openEdit}
             onDelete={setDeleteTarget}
@@ -375,11 +375,11 @@ export default function ProposalsPage() {
           <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden divide-y divide-gray-100"
             style={{ boxShadow: "0 4px 24px rgba(74,31,85,0.07)" }}>
             {filtered.map((p) => {
-              const q = eisenhowerQuadrant(p.urgency, p.importance);
+              const q = matrixQuadrant(p.effect, p.complexity);
               return (
                 <div key={p.id} className="px-5 py-4 hover:bg-gray-50/50 transition-colors">
                   <div className="flex items-start gap-4">
-                    {/* Eisenhower indicator */}
+                    {/* Matrix indicator */}
                     <div
                       className="shrink-0 mt-1 w-2 h-2 rounded-full"
                       style={{ backgroundColor: q.border }}
@@ -513,40 +513,40 @@ export default function ProposalsPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-sm font-medium">Hastegrad</label>
-                <Select value={form.urgency} onValueChange={v => setForm(f => ({ ...f, urgency: v as "høy" | "lav" }))}>
+                <label className="text-sm font-medium">Forventet effekt</label>
+                <Select value={form.effect} onValueChange={v => setForm(f => ({ ...f, effect: v as "stor" | "liten" }))}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="høy">Høy — haster</SelectItem>
-                    <SelectItem value="lav">Lav — haster ikke</SelectItem>
+                    <SelectItem value="stor">Stor — høy gevinst</SelectItem>
+                    <SelectItem value="liten">Liten — begrenset gevinst</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <label className="text-sm font-medium">Viktighet</label>
-                <Select value={form.importance} onValueChange={v => setForm(f => ({ ...f, importance: v as "høy" | "lav" }))}>
+                <label className="text-sm font-medium">Utviklingskompleksitet</label>
+                <Select value={form.complexity} onValueChange={v => setForm(f => ({ ...f, complexity: v as "krevende" | "enkel" }))}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="høy">Høy — viktig</SelectItem>
-                    <SelectItem value="lav">Lav — mindre viktig</SelectItem>
+                    <SelectItem value="enkel">Enkel — raskt å bygge</SelectItem>
+                    <SelectItem value="krevende">Krevende — krever mer arbeid</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
-            {/* Eisenhower preview */}
+            {/* Matrix preview */}
             {(() => {
-              const q = eisenhowerQuadrant(form.urgency, form.importance);
+              const q = matrixQuadrant(form.effect, form.complexity);
               return (
                 <div
                   className="rounded-lg px-3 py-2 text-xs font-medium"
                   style={{ backgroundColor: q.color, color: q.text, border: `1px solid ${q.border}` }}
                 >
-                  Eisenhower-kvadrant: <strong>{q.label}</strong>
+                  Prioriteringsmatrise: <strong>{q.label}</strong>
                 </div>
               );
             })()}

@@ -8,7 +8,7 @@ const router = Router();
 
 // GET /api/proposals
 router.get("/proposals", requireAuth, async (req, res) => {
-  const { status, urgency, importance } = req.query as Record<string, string | undefined>;
+  const { status, effect, complexity } = req.query as Record<string, string | undefined>;
 
   const rows = await db
     .select({ proposal: proposalsTable, submittedByName: usersTable.name })
@@ -18,8 +18,8 @@ router.get("/proposals", requireAuth, async (req, res) => {
   let results = rows.map(({ proposal, submittedByName }) => ({ ...proposal, submittedByName }));
 
   if (status) results = results.filter((r) => r.status === status);
-  if (urgency) results = results.filter((r) => r.urgency === urgency);
-  if (importance) results = results.filter((r) => r.importance === importance);
+  if (effect) results = results.filter((r) => r.effect === effect);
+  if (complexity) results = results.filter((r) => r.complexity === complexity);
 
   results.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   res.json(results);
@@ -35,8 +35,8 @@ router.post("/proposals", requireAuth, async (req, res) => {
     description: body.description,
     type: body.type ?? "problem",
     solutionDescription: body.solutionDescription ?? null,
-    urgency: body.urgency ?? "lav",
-    importance: body.importance ?? "lav",
+    effect: body.effect ?? "liten",
+    complexity: body.complexity ?? "krevende",
     status: "ny",
     submittedBy: user.id,
   }).returning();
@@ -57,7 +57,7 @@ router.patch("/proposals/:id", requireAuth, async (req, res) => {
   const body = req.body as any;
   const updateData: any = {};
 
-  for (const key of ["title", "description", "solutionDescription", "urgency", "importance", "status"]) {
+  for (const key of ["title", "description", "solutionDescription", "effect", "complexity", "status"]) {
     if (body[key] !== undefined) updateData[key] = body[key];
   }
 

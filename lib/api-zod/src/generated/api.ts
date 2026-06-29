@@ -1052,8 +1052,8 @@ export const ListAuditLogResponse = zod.array(ListAuditLogResponseItem)
  */
 export const ListProposalsQueryParams = zod.object({
   "status": zod.coerce.string().optional(),
-  "urgency": zod.coerce.string().optional(),
-  "importance": zod.coerce.string().optional()
+  "effect": zod.coerce.string().optional(),
+  "complexity": zod.coerce.string().optional()
 })
 
 export const ListProposalsResponseItem = zod.object({
@@ -1062,8 +1062,8 @@ export const ListProposalsResponseItem = zod.object({
   "description": zod.string(),
   "type": zod.enum(['problem', 'solution']),
   "solutionDescription": zod.string().nullish(),
-  "urgency": zod.enum(['høy', 'lav']),
-  "importance": zod.enum(['høy', 'lav']),
+  "effect": zod.enum(['stor', 'liten']),
+  "complexity": zod.enum(['krevende', 'enkel']),
   "status": zod.enum(['ny', 'vurdert', 'konvertert']),
   "submittedBy": zod.number().nullish(),
   "submittedByName": zod.string().nullish(),
@@ -1086,8 +1086,8 @@ export const CreateProposalBody = zod.object({
   "description": zod.string().min(1),
   "type": zod.enum(['problem', 'solution']),
   "solutionDescription": zod.string().optional(),
-  "urgency": zod.enum(['høy', 'lav']),
-  "importance": zod.enum(['høy', 'lav'])
+  "effect": zod.enum(['stor', 'liten']),
+  "complexity": zod.enum(['krevende', 'enkel'])
 })
 
 
@@ -1105,8 +1105,8 @@ export const UpdateProposalBody = zod.object({
   "title": zod.string().min(1).optional(),
   "description": zod.string().optional(),
   "solutionDescription": zod.string().nullish(),
-  "urgency": zod.enum(['høy', 'lav']).optional(),
-  "importance": zod.enum(['høy', 'lav']).optional(),
+  "effect": zod.enum(['stor', 'liten']).optional(),
+  "complexity": zod.enum(['krevende', 'enkel']).optional(),
   "status": zod.enum(['ny', 'vurdert', 'konvertert']).optional()
 })
 
@@ -1116,8 +1116,8 @@ export const UpdateProposalResponse = zod.object({
   "description": zod.string(),
   "type": zod.enum(['problem', 'solution']),
   "solutionDescription": zod.string().nullish(),
-  "urgency": zod.enum(['høy', 'lav']),
-  "importance": zod.enum(['høy', 'lav']),
+  "effect": zod.enum(['stor', 'liten']),
+  "complexity": zod.enum(['krevende', 'enkel']),
   "status": zod.enum(['ny', 'vurdert', 'konvertert']),
   "submittedBy": zod.number().nullish(),
   "submittedByName": zod.string().nullish(),

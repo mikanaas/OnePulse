@@ -939,20 +939,20 @@ export const ProposalType = {
   solution: 'solution',
 } as const;
 
-export type ProposalUrgency = typeof ProposalUrgency[keyof typeof ProposalUrgency];
+export type ProposalEffect = typeof ProposalEffect[keyof typeof ProposalEffect];
 
 
-export const ProposalUrgency = {
-  høy: 'høy',
-  lav: 'lav',
+export const ProposalEffect = {
+  stor: 'stor',
+  liten: 'liten',
 } as const;
 
-export type ProposalImportance = typeof ProposalImportance[keyof typeof ProposalImportance];
+export type ProposalComplexity = typeof ProposalComplexity[keyof typeof ProposalComplexity];
 
 
-export const ProposalImportance = {
-  høy: 'høy',
-  lav: 'lav',
+export const ProposalComplexity = {
+  krevende: 'krevende',
+  enkel: 'enkel',
 } as const;
 
 export type ProposalStatus = typeof ProposalStatus[keyof typeof ProposalStatus];
@@ -971,8 +971,8 @@ export interface Proposal {
   type: ProposalType;
   /** @nullable */
   solutionDescription?: string | null;
-  urgency: ProposalUrgency;
-  importance: ProposalImportance;
+  effect: ProposalEffect;
+  complexity: ProposalComplexity;
   status: ProposalStatus;
   /** @nullable */
   submittedBy?: number | null;
@@ -992,20 +992,20 @@ export const ProposalInputType = {
   solution: 'solution',
 } as const;
 
-export type ProposalInputUrgency = typeof ProposalInputUrgency[keyof typeof ProposalInputUrgency];
+export type ProposalInputEffect = typeof ProposalInputEffect[keyof typeof ProposalInputEffect];
 
 
-export const ProposalInputUrgency = {
-  høy: 'høy',
-  lav: 'lav',
+export const ProposalInputEffect = {
+  stor: 'stor',
+  liten: 'liten',
 } as const;
 
-export type ProposalInputImportance = typeof ProposalInputImportance[keyof typeof ProposalInputImportance];
+export type ProposalInputComplexity = typeof ProposalInputComplexity[keyof typeof ProposalInputComplexity];
 
 
-export const ProposalInputImportance = {
-  høy: 'høy',
-  lav: 'lav',
+export const ProposalInputComplexity = {
+  krevende: 'krevende',
+  enkel: 'enkel',
 } as const;
 
 export interface ProposalInput {
@@ -1015,24 +1015,24 @@ export interface ProposalInput {
   description: string;
   type: ProposalInputType;
   solutionDescription?: string;
-  urgency: ProposalInputUrgency;
-  importance: ProposalInputImportance;
+  effect: ProposalInputEffect;
+  complexity: ProposalInputComplexity;
 }
 
-export type ProposalUpdateUrgency = typeof ProposalUpdateUrgency[keyof typeof ProposalUpdateUrgency];
+export type ProposalUpdateEffect = typeof ProposalUpdateEffect[keyof typeof ProposalUpdateEffect];
 
 
-export const ProposalUpdateUrgency = {
-  høy: 'høy',
-  lav: 'lav',
+export const ProposalUpdateEffect = {
+  stor: 'stor',
+  liten: 'liten',
 } as const;
 
-export type ProposalUpdateImportance = typeof ProposalUpdateImportance[keyof typeof ProposalUpdateImportance];
+export type ProposalUpdateComplexity = typeof ProposalUpdateComplexity[keyof typeof ProposalUpdateComplexity];
 
 
-export const ProposalUpdateImportance = {
-  høy: 'høy',
-  lav: 'lav',
+export const ProposalUpdateComplexity = {
+  krevende: 'krevende',
+  enkel: 'enkel',
 } as const;
 
 export type ProposalUpdateStatus = typeof ProposalUpdateStatus[keyof typeof ProposalUpdateStatus];
@@ -1050,8 +1050,8 @@ export interface ProposalUpdate {
   description?: string;
   /** @nullable */
   solutionDescription?: string | null;
-  urgency?: ProposalUpdateUrgency;
-  importance?: ProposalUpdateImportance;
+  effect?: ProposalUpdateEffect;
+  complexity?: ProposalUpdateComplexity;
   status?: ProposalUpdateStatus;
 }
 
@@ -1116,8 +1116,8 @@ offset?: number;
 
 export type ListProposalsParams = {
 status?: string;
-urgency?: string;
-importance?: string;
+effect?: string;
+complexity?: string;
 };
 
 export type ConvertProposal201 = {

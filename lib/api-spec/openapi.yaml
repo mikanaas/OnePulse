@@ -1120,11 +1120,11 @@ paths:
           in: query
           schema:
             type: string
-        - name: urgency
+        - name: effect
           in: query
           schema:
             type: string
-        - name: importance
+        - name: complexity
           in: query
           schema:
             type: string
@@ -2153,7 +2153,7 @@ components:
     # ─── Proposal Schemas ────────────────────────────────────────────
     Proposal:
       type: object
-      required: [id, title, description, type, urgency, importance, status, createdAt]
+      required: [id, title, description, type, effect, complexity, status, createdAt]
       properties:
         id:
           type: integer
@@ -2166,12 +2166,12 @@ components:
           enum: [problem, solution]
         solutionDescription:
           type: ["string", "null"]
-        urgency:
+        effect:
           type: string
-          enum: [høy, lav]
-        importance:
+          enum: [stor, liten]
+        complexity:
           type: string
-          enum: [høy, lav]
+          enum: [krevende, enkel]
         status:
           type: string
           enum: [ny, vurdert, konvertert]
@@ -2188,7 +2188,7 @@ components:
 
     ProposalInput:
       type: object
-      required: [title, description, type, urgency, importance]
+      required: [title, description, type, effect, complexity]
       properties:
         title:
           type: string
@@ -2201,12 +2201,12 @@ components:
           enum: [problem, solution]
         solutionDescription:
           type: string
-        urgency:
+        effect:
           type: string
-          enum: [høy, lav]
-        importance:
+          enum: [stor, liten]
+        complexity:
           type: string
-          enum: [høy, lav]
+          enum: [krevende, enkel]
 
     ProposalUpdate:
       type: object
@@ -2218,12 +2218,12 @@ components:
           type: string
         solutionDescription:
           type: ["string", "null"]
-        urgency:
+        effect:
           type: string
-          enum: [høy, lav]
-        importance:
+          enum: [stor, liten]
+        complexity:
           type: string
-          enum: [høy, lav]
+          enum: [krevende, enkel]
         status:
           type: string
           enum: [ny, vurdert, konvertert]
