@@ -10,6 +10,18 @@ import {
 } from "@workspace/api-client-react";
 import type { Proposal } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  useDroppable,
+  useDraggable,
+  type DragEndEvent,
+  type DragStartEvent,
+} from "@dnd-kit/core";
+import { CSS } from "@dnd-kit/utilities";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -38,7 +50,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Lightbulb, Plus, Trash2, ArrowRight, LayoutGrid, List, Filter } from "lucide-react";
+import { Lightbulb, Plus, Trash2, ArrowRight, LayoutGrid, List, GripVertical } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const BRAND = "#4A1F55";
@@ -73,18 +85,23 @@ interface ProposalCardProps {
   onDelete: (p: Proposal) => void;
   onConvert: (p: Proposal) => void;
   compact?: boolean;
+  isDragging?: boolean;
 }
 
-function ProposalCard({ proposal, onEdit, onDelete, onConvert, compact }: ProposalCardProps) {
+function ProposalCard({ proposal, onEdit, onDelete, onConvert, compact, isDragging }: ProposalCardProps) {
   const q = matrixQuadrant(proposal.effect, proposal.complexity);
   return (
     <div
-      className="rounded-xl border bg-white p-4 space-y-2 cursor-pointer hover:shadow-md transition-shadow"
+      className={`rounded-xl border bg-white p-3 space-y-1.5 transition-shadow ${isDragging ? "opacity-40" : "hover:shadow-md"}`}
       style={{ borderColor: q.border }}
-      onClick={() => onEdit(proposal)}
     >
       <div className="flex items-start justify-between gap-2">
-        <p className="text-sm font-semibold text-gray-900 leading-tight flex-1">{proposal.title}</p>
+        <button
+          className="text-sm font-semibold text-gray-900 leading-tight flex-1 text-left hover:underline"
+          onClick={() => onEdit(proposal)}
+        >
+          {proposal.title}
+        </button>
         {statusBadge(proposal.status)}
       </div>
       {!compact && (
@@ -95,7 +112,7 @@ function ProposalCard({ proposal, onEdit, onDelete, onConvert, compact }: Propos
         <span className="text-[10px] text-gray-400">{proposal.submittedByName ?? "Ukjent"}</span>
       </div>
       {!compact && (
-        <div className="flex items-center gap-2 pt-1" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center gap-2 pt-1">
           {proposal.status !== "konvertert" && (
             <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => onConvert(proposal)}>
               <ArrowRight className="h-3 w-3" /> Til prosjekt
@@ -110,60 +127,179 @@ function ProposalCard({ proposal, onEdit, onDelete, onConvert, compact }: Propos
   );
 }
 
-function ProposalMatrix({ proposals, onEdit, onDelete, onConvert }: {
+function DraggableCard({ proposal, onEdit, onDelete, onConvert }: Omit<ProposalCardProps, "compact" | "isDragging">) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: String(proposal.id) });
+  const style = { transform: CSS.Translate.toString(transform) };
+
+  return (
+    <div ref={setNodeRef} style={style} className="relative group">
+      {/* Grip handle */}
+      <div
+        {...listeners}
+        {...attributes}
+        className="absolute left-0 top-0 bottom-0 w-6 flex items-center justify-center cursor-grab active:cursor-grabbing rounded-l-xl opacity-0 group-hover:opacity-100 transition-opacity z-10"
+        style={{ color: "#9CA3AF" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <GripVertical className="h-3.5 w-3.5" />
+      </div>
+      <div className="pl-5">
+        <ProposalCard
+          proposal={proposal}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          onConvert={onConvert}
+          compact
+          isDragging={isDragging}
+        />
+      </div>
+    </div>
+  );
+}
+
+function DroppableQuadrant({
+  id, effect, complexity, label, sublabel, color, border, text,
+  proposals, onEdit, onDelete, onConvert, activeId,
+}: {
+  id: string;
+  effect: string;
+  complexity: string;
+  label: string;
+  sublabel: string;
+  color: string;
+  border: string;
+  text: string;
   proposals: Proposal[];
   onEdit: (p: Proposal) => void;
   onDelete: (p: Proposal) => void;
   onConvert: (p: Proposal) => void;
+  activeId: string | null;
 }) {
-  const quadrants = [
-    { effect: "stor", complexity: "enkel", label: "Stor effekt · Enkelt å utvikle", sublabel: "Lav hengende frukt", color: "#D1FAE5", border: "#6EE7B7", text: "#065F46" },
-    { effect: "stor", complexity: "krevende", label: "Stor effekt · Krevende å utvikle", sublabel: "Store satsinger", color: "#EFF6FF", border: "#BFDBFE", text: "#1D4ED8" },
-    { effect: "liten", complexity: "enkel", label: "Liten effekt · Enkelt å utvikle", sublabel: "Fyll-inn-tiltak", color: "#FEF9C3", border: "#FDE047", text: "#713F12" },
-    { effect: "liten", complexity: "krevende", label: "Liten effekt · Krevende å utvikle", sublabel: "Vurder å droppe", color: "#FEE2E2", border: "#FCA5A5", text: "#991B1B" },
-  ];
+  const { setNodeRef, isOver } = useDroppable({ id });
+  const items = proposals.filter(p => p.effect === effect && p.complexity === complexity);
+  const isActiveOver = isOver && activeId !== null;
 
   return (
-    <div className="space-y-2">
-      <div className="grid grid-cols-[auto_1fr]">
-        <div className="w-7" />
-        <div className="grid grid-cols-2 gap-2 text-center text-xs font-semibold text-gray-500 mb-1">
-          <div>Enkelt å utvikle</div>
-          <div>Krevende å utvikle</div>
-        </div>
+    <div
+      ref={setNodeRef}
+      className="rounded-xl border-2 p-3 min-h-[220px] transition-all duration-150"
+      style={{
+        backgroundColor: isActiveOver ? color + "99" : color + "55",
+        borderColor: isActiveOver ? border : border + "88",
+        boxShadow: isActiveOver ? `0 0 0 3px ${border}66` : undefined,
+      }}
+    >
+      <div className="mb-3">
+        <p className="text-xs font-bold" style={{ color: text }}>{sublabel}</p>
+        <p className="text-[10px] text-gray-500">{label}</p>
       </div>
-      <div className="grid grid-cols-[auto_1fr] gap-1">
-        <div className="flex flex-col text-xs font-semibold text-gray-500 w-7">
-          <div className="flex-1 flex items-center justify-center" style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}>Stor effekt</div>
-          <div className="flex-1 flex items-center justify-center" style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}>Liten effekt</div>
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          {quadrants.map((q) => {
-            const items = proposals.filter(p => p.effect === q.effect && p.complexity === q.complexity);
-            return (
-              <div
-                key={`${q.effect}-${q.complexity}`}
-                className="rounded-xl border-2 p-3 min-h-[200px]"
-                style={{ backgroundColor: q.color + "55", borderColor: q.border }}
-              >
-                <div className="mb-2">
-                  <p className="text-xs font-bold" style={{ color: q.text }}>{q.sublabel}</p>
-                  <p className="text-[10px] text-gray-500">{q.label}</p>
-                </div>
-                <div className="space-y-2">
-                  {items.length === 0 && (
-                    <p className="text-xs text-gray-400 text-center py-4">Ingen forslag</p>
-                  )}
-                  {items.map(p => (
-                    <ProposalCard key={p.id} proposal={p} onEdit={onEdit} onDelete={onDelete} onConvert={onConvert} compact />
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+      <div className="space-y-2">
+        {items.length === 0 && (
+          <div
+            className={`rounded-lg border-2 border-dashed py-6 text-center text-xs transition-colors ${
+              isActiveOver ? "border-current opacity-60" : "border-gray-200 text-gray-300"
+            }`}
+            style={isActiveOver ? { borderColor: border, color: text } : undefined}
+          >
+            {isActiveOver ? "Slipp her" : "Ingen forslag"}
+          </div>
+        )}
+        {items.map(p => (
+          <DraggableCard key={p.id} proposal={p} onEdit={onEdit} onDelete={onDelete} onConvert={onConvert} />
+        ))}
+        {items.length > 0 && isActiveOver && (
+          <div
+            className="rounded-lg border-2 border-dashed py-3 text-center text-xs"
+            style={{ borderColor: border, color: text }}
+          >
+            Slipp her
+          </div>
+        )}
       </div>
     </div>
+  );
+}
+
+const QUADRANTS = [
+  { effect: "stor", complexity: "enkel", label: "Stor effekt · Enkelt å utvikle", sublabel: "Lav hengende frukt", color: "#D1FAE5", border: "#6EE7B7", text: "#065F46" },
+  { effect: "stor", complexity: "krevende", label: "Stor effekt · Krevende å utvikle", sublabel: "Store satsinger", color: "#EFF6FF", border: "#BFDBFE", text: "#1D4ED8" },
+  { effect: "liten", complexity: "enkel", label: "Liten effekt · Enkelt å utvikle", sublabel: "Fyll-inn-tiltak", color: "#FEF9C3", border: "#FDE047", text: "#713F12" },
+  { effect: "liten", complexity: "krevende", label: "Liten effekt · Krevende å utvikle", sublabel: "Vurder å droppe", color: "#FEE2E2", border: "#FCA5A5", text: "#991B1B" },
+];
+
+function ProposalMatrix({ proposals, onEdit, onDelete, onConvert, onMove }: {
+  proposals: Proposal[];
+  onEdit: (p: Proposal) => void;
+  onDelete: (p: Proposal) => void;
+  onConvert: (p: Proposal) => void;
+  onMove: (id: number, effect: string, complexity: string) => Promise<void>;
+}) {
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
+
+  const activeProposal = activeId ? proposals.find(p => String(p.id) === activeId) ?? null : null;
+
+  function handleDragStart(event: DragStartEvent) {
+    setActiveId(String(event.active.id));
+  }
+
+  async function handleDragEnd(event: DragEndEvent) {
+    setActiveId(null);
+    const { active, over } = event;
+    if (!over) return;
+    const [newEffect, newComplexity] = String(over.id).split(":");
+    const proposal = proposals.find(p => String(p.id) === String(active.id));
+    if (!proposal) return;
+    if (proposal.effect === newEffect && proposal.complexity === newComplexity) return;
+    await onMove(proposal.id, newEffect, newComplexity);
+  }
+
+  return (
+    <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+      <div className="space-y-2">
+        <div className="grid grid-cols-[auto_1fr]">
+          <div className="w-7" />
+          <div className="grid grid-cols-2 gap-2 text-center text-xs font-semibold text-gray-500 mb-1">
+            <div>Enkelt å utvikle</div>
+            <div>Krevende å utvikle</div>
+          </div>
+        </div>
+        <div className="grid grid-cols-[auto_1fr] gap-1">
+          <div className="flex flex-col text-xs font-semibold text-gray-500 w-7">
+            <div className="flex-1 flex items-center justify-center" style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}>Stor effekt</div>
+            <div className="flex-1 flex items-center justify-center" style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}>Liten effekt</div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {QUADRANTS.map((q) => (
+              <DroppableQuadrant
+                key={`${q.effect}:${q.complexity}`}
+                id={`${q.effect}:${q.complexity}`}
+                {...q}
+                proposals={proposals}
+                onEdit={onEdit}
+                onDelete={onDelete}
+                onConvert={onConvert}
+                activeId={activeId}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <DragOverlay dropAnimation={{ duration: 150, easing: "ease" }}>
+        {activeProposal && (
+          <div className="w-64 rotate-1 shadow-2xl opacity-95 rounded-xl">
+            <ProposalCard
+              proposal={activeProposal}
+              onEdit={() => {}}
+              onDelete={() => {}}
+              onConvert={() => {}}
+              compact
+            />
+          </div>
+        )}
+      </DragOverlay>
+    </DndContext>
   );
 }
 
@@ -287,6 +423,11 @@ export default function ProposalsPage() {
     await invalidate();
   }
 
+  async function handleMove(id: number, effect: string, complexity: string) {
+    await updateProposal.mutateAsync({ id, data: { effect: effect as "stor" | "liten", complexity: complexity as "krevende" | "enkel" } });
+    await invalidate();
+  }
+
   const counts = {
     alle: proposals.length,
     ny: proposals.filter(p => p.status === "ny").length,
@@ -368,6 +509,7 @@ export default function ProposalsPage() {
             onEdit={openEdit}
             onDelete={setDeleteTarget}
             onConvert={(p) => { setConvertTarget(p); setConvertName(p.title); }}
+            onMove={handleMove}
           />
         )}
 
