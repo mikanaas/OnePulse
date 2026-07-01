@@ -7,3 +7,4 @@ export * from "./links";
 export * from "./audit";
 export * from "./governance";
 export * from "./proposals";
+export * from "./dmaic";

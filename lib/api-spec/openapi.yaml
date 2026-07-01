@@ -34,6 +34,8 @@ tags:
     description: Audit log
   - name: proposals
     description: Improvement proposals
+  - name: dmaic
+    description: DMAIC Six Sigma analysis per project
 
 paths:
   /healthz:
@@ -1109,6 +1111,49 @@ paths:
                 items:
                   $ref: "#/components/schemas/AuditEntry"
 
+  # ─── DMAIC ────────────────────────────────────────────────────────
+  /projects/{projectId}/dmaic:
+    get:
+      operationId: getDmaic
+      tags: [dmaic]
+      summary: Get DMAIC analysis for a project
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: DMAIC analysis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DmaicAnalysis"
+    put:
+      operationId: upsertDmaic
+      tags: [dmaic]
+      summary: Create or update DMAIC analysis
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DmaicInput"
+      responses:
+        "200":
+          description: Updated DMAIC analysis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DmaicAnalysis"
+
   # ─── Proposals ────────────────────────────────────────────────────
   /proposals:
     get:
@@ -2149,6 +2194,122 @@ components:
           enum: ["under_vurdering", "godkjent_pilot", "godkjent_produksjon", "amnesti", "avvikling", null]
         dpiaLink:
           type: ["string", "null"]
+
+    # ─── DMAIC Schemas ───────────────────────────────────────────────
+    DmaicDefine:
+      type: object
+      properties:
+        problem:
+          type: string
+        affected:
+          type: string
+        frequency:
+          type: string
+        consequence:
+          type: string
+
+    DmaicMeasureRow:
+      type: object
+      required: [parameter, value]
+      properties:
+        parameter:
+          type: string
+        value:
+          type: string
+
+    DmaicAnalyzeBreakdownRow:
+      type: object
+      required: [activity, minutes]
+      properties:
+        activity:
+          type: string
+        minutes:
+          type: number
+
+    DmaicAnalyze:
+      type: object
+      properties:
+        why:
+          type: string
+        breakdown:
+          type: array
+          items:
+            $ref: "#/components/schemas/DmaicAnalyzeBreakdownRow"
+
+    DmaicImproveItem:
+      type: object
+      required: [tool, description]
+      properties:
+        tool:
+          type: string
+        description:
+          type: string
+
+    DmaicImprove:
+      type: object
+      properties:
+        description:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/DmaicImproveItem"
+
+    DmaicControlRow:
+      type: object
+      required: [kpi, before, after]
+      properties:
+        kpi:
+          type: string
+        before:
+          type: string
+        after:
+          type: string
+
+    DmaicAnalysis:
+      type: object
+      required: [id, projectId]
+      properties:
+        id:
+          type: integer
+        projectId:
+          type: integer
+        defineData:
+          $ref: "#/components/schemas/DmaicDefine"
+        measureData:
+          type: array
+          items:
+            $ref: "#/components/schemas/DmaicMeasureRow"
+        analyzeData:
+          $ref: "#/components/schemas/DmaicAnalyze"
+        improveData:
+          $ref: "#/components/schemas/DmaicImprove"
+        controlData:
+          type: array
+          items:
+            $ref: "#/components/schemas/DmaicControlRow"
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    DmaicInput:
+      type: object
+      properties:
+        defineData:
+          $ref: "#/components/schemas/DmaicDefine"
+        measureData:
+          type: array
+          items:
+            $ref: "#/components/schemas/DmaicMeasureRow"
+        analyzeData:
+          $ref: "#/components/schemas/DmaicAnalyze"
+        improveData:
+          $ref: "#/components/schemas/DmaicImprove"
+        controlData:
+          type: array
+          items:
+            $ref: "#/components/schemas/DmaicControlRow"
 
     # ─── Proposal Schemas ────────────────────────────────────────────
     Proposal:

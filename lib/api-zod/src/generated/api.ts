@@ -1048,6 +1048,126 @@ export const ListAuditLogResponse = zod.array(ListAuditLogResponseItem)
 
 
 /**
+ * @summary Get DMAIC analysis for a project
+ */
+export const GetDmaicParams = zod.object({
+  "projectId": zod.coerce.number()
+})
+
+export const GetDmaicResponse = zod.object({
+  "id": zod.number(),
+  "projectId": zod.number(),
+  "defineData": zod.object({
+  "problem": zod.string().optional(),
+  "affected": zod.string().optional(),
+  "frequency": zod.string().optional(),
+  "consequence": zod.string().optional()
+}).optional(),
+  "measureData": zod.array(zod.object({
+  "parameter": zod.string(),
+  "value": zod.string()
+})).optional(),
+  "analyzeData": zod.object({
+  "why": zod.string().optional(),
+  "breakdown": zod.array(zod.object({
+  "activity": zod.string(),
+  "minutes": zod.number()
+})).optional()
+}).optional(),
+  "improveData": zod.object({
+  "description": zod.string().optional(),
+  "items": zod.array(zod.object({
+  "tool": zod.string(),
+  "description": zod.string()
+})).optional()
+}).optional(),
+  "controlData": zod.array(zod.object({
+  "kpi": zod.string(),
+  "before": zod.string(),
+  "after": zod.string()
+})).optional(),
+  "createdAt": zod.string().optional(),
+  "updatedAt": zod.string().optional()
+})
+
+
+/**
+ * @summary Create or update DMAIC analysis
+ */
+export const UpsertDmaicParams = zod.object({
+  "projectId": zod.coerce.number()
+})
+
+export const UpsertDmaicBody = zod.object({
+  "defineData": zod.object({
+  "problem": zod.string().optional(),
+  "affected": zod.string().optional(),
+  "frequency": zod.string().optional(),
+  "consequence": zod.string().optional()
+}).optional(),
+  "measureData": zod.array(zod.object({
+  "parameter": zod.string(),
+  "value": zod.string()
+})).optional(),
+  "analyzeData": zod.object({
+  "why": zod.string().optional(),
+  "breakdown": zod.array(zod.object({
+  "activity": zod.string(),
+  "minutes": zod.number()
+})).optional()
+}).optional(),
+  "improveData": zod.object({
+  "description": zod.string().optional(),
+  "items": zod.array(zod.object({
+  "tool": zod.string(),
+  "description": zod.string()
+})).optional()
+}).optional(),
+  "controlData": zod.array(zod.object({
+  "kpi": zod.string(),
+  "before": zod.string(),
+  "after": zod.string()
+})).optional()
+})
+
+export const UpsertDmaicResponse = zod.object({
+  "id": zod.number(),
+  "projectId": zod.number(),
+  "defineData": zod.object({
+  "problem": zod.string().optional(),
+  "affected": zod.string().optional(),
+  "frequency": zod.string().optional(),
+  "consequence": zod.string().optional()
+}).optional(),
+  "measureData": zod.array(zod.object({
+  "parameter": zod.string(),
+  "value": zod.string()
+})).optional(),
+  "analyzeData": zod.object({
+  "why": zod.string().optional(),
+  "breakdown": zod.array(zod.object({
+  "activity": zod.string(),
+  "minutes": zod.number()
+})).optional()
+}).optional(),
+  "improveData": zod.object({
+  "description": zod.string().optional(),
+  "items": zod.array(zod.object({
+  "tool": zod.string(),
+  "description": zod.string()
+})).optional()
+}).optional(),
+  "controlData": zod.array(zod.object({
+  "kpi": zod.string(),
+  "before": zod.string(),
+  "after": zod.string()
+})).optional(),
+  "createdAt": zod.string().optional(),
+  "updatedAt": zod.string().optional()
+})
+
+
+/**
  * @summary List improvement proposals
  */
 export const ListProposalsQueryParams = zod.object({

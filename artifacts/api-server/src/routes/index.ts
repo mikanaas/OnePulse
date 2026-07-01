@@ -13,6 +13,7 @@ import auditRouter from "./audit";
 import adminRouter from "./admin";
 import governanceRouter from "./governance";
 import proposalsRouter from "./proposals";
+import dmaicRouter from "./dmaic";
 
 const router: IRouter = Router();
 
@@ -30,5 +31,6 @@ router.use(auditRouter);
 router.use(adminRouter);
 router.use(governanceRouter);
 router.use(proposalsRouter);
+router.use(dmaicRouter);
 
 export default router;

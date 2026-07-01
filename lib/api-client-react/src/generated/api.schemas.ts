@@ -931,6 +931,64 @@ export interface ProjectGovernanceInput {
   dpiaLink?: string | null;
 }
 
+export interface DmaicDefine {
+  problem?: string;
+  affected?: string;
+  frequency?: string;
+  consequence?: string;
+}
+
+export interface DmaicMeasureRow {
+  parameter: string;
+  value: string;
+}
+
+export interface DmaicAnalyzeBreakdownRow {
+  activity: string;
+  minutes: number;
+}
+
+export interface DmaicAnalyze {
+  why?: string;
+  breakdown?: DmaicAnalyzeBreakdownRow[];
+}
+
+export interface DmaicImproveItem {
+  tool: string;
+  description: string;
+}
+
+export interface DmaicImprove {
+  description?: string;
+  items?: DmaicImproveItem[];
+}
+
+export interface DmaicControlRow {
+  kpi: string;
+  before: string;
+  after: string;
+}
+
+export interface DmaicAnalysis {
+  id: number;
+  projectId: number;
+  defineData?: DmaicDefine;
+  measureData?: DmaicMeasureRow[];
+  analyzeData?: DmaicAnalyze;
+  improveData?: DmaicImprove;
+  controlData?: DmaicControlRow[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface DmaicInput {
+  defineData?: DmaicDefine;
+  measureData?: DmaicMeasureRow[];
+  analyzeData?: DmaicAnalyze;
+  improveData?: DmaicImprove;
+  controlData?: DmaicControlRow[];
+}
+
 export type ProposalType = typeof ProposalType[keyof typeof ProposalType];
 
 

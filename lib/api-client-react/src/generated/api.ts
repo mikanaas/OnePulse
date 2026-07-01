@@ -29,6 +29,8 @@ import type {
   CostEntry,
   CostInput,
   CostUpdate,
+  DmaicAnalysis,
+  DmaicInput,
   EffectEntry,
   EffectInput,
   EffectUpdate,
@@ -4014,6 +4016,155 @@ export function useListAuditLog<TData = Awaited<ReturnType<typeof listAuditLog>>
 
 
 
+
+export const getGetDmaicUrl = (projectId: number,) => {
+
+
+
+
+  return `/api/projects/${projectId}/dmaic`
+}
+
+/**
+ * @summary Get DMAIC analysis for a project
+ */
+export const getDmaic = async (projectId: number, options?: RequestInit): Promise<DmaicAnalysis> => {
+
+  return customFetch<DmaicAnalysis>(getGetDmaicUrl(projectId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDmaicQueryKey = (projectId: number,) => {
+    return [
+    `/api/projects/${projectId}/dmaic`
+    ] as const;
+    }
+
+
+export const getGetDmaicQueryOptions = <TData = Awaited<ReturnType<typeof getDmaic>>, TError = ErrorType<unknown>>(projectId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDmaic>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDmaicQueryKey(projectId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDmaic>>> = ({ signal }) => getDmaic(projectId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(projectId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDmaic>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetDmaicQueryResult = NonNullable<Awaited<ReturnType<typeof getDmaic>>>
+export type GetDmaicQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get DMAIC analysis for a project
+ */
+
+export function useGetDmaic<TData = Awaited<ReturnType<typeof getDmaic>>, TError = ErrorType<unknown>>(
+ projectId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDmaic>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetDmaicQueryOptions(projectId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpsertDmaicUrl = (projectId: number,) => {
+
+
+
+
+  return `/api/projects/${projectId}/dmaic`
+}
+
+/**
+ * @summary Create or update DMAIC analysis
+ */
+export const upsertDmaic = async (projectId: number,
+    dmaicInput: DmaicInput, options?: RequestInit): Promise<DmaicAnalysis> => {
+
+  return customFetch<DmaicAnalysis>(getUpsertDmaicUrl(projectId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      dmaicInput,)
+  }
+);}
+
+
+
+
+export const getUpsertDmaicMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof upsertDmaic>>, TError,{projectId: number;data: BodyType<DmaicInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof upsertDmaic>>, TError,{projectId: number;data: BodyType<DmaicInput>}, TContext> => {
+
+const mutationKey = ['upsertDmaic'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof upsertDmaic>>, {projectId: number;data: BodyType<DmaicInput>}> = (props) => {
+          const {projectId,data} = props ?? {};
+
+          return  upsertDmaic(projectId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpsertDmaicMutationResult = NonNullable<Awaited<ReturnType<typeof upsertDmaic>>>
+    export type UpsertDmaicMutationBody = BodyType<DmaicInput>
+    export type UpsertDmaicMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create or update DMAIC analysis
+ */
+export const useUpsertDmaic = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof upsertDmaic>>, TError,{projectId: number;data: BodyType<DmaicInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof upsertDmaic>>,
+        TError,
+        {projectId: number;data: BodyType<DmaicInput>},
+        TContext
+      > => {
+      return useMutation(getUpsertDmaicMutationOptions(options));
+    }
 
 export const getListProposalsUrl = (params?: ListProposalsParams,) => {
   const normalizedParams = new URLSearchParams();
