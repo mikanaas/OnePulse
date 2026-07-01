@@ -20,11 +20,11 @@ import { useToast } from "@/hooks/use-toast";
 const BRAND = "#4A1F55";
 
 const PHASE_COLORS: Record<string, { bg: string; border: string; text: string; badge: string }> = {
-  D: { bg: "#F5F0FF", border: "#C4B5FD", text: "#5B21B6", badge: "#7C3AED" },
-  M: { bg: "#EFF6FF", border: "#BFDBFE", text: "#1D4ED8", badge: "#2563EB" },
-  A: { bg: "#FFF7ED", border: "#FED7AA", text: "#C2410C", badge: "#EA580C" },
-  I: { bg: "#F0FDF4", border: "#BBF7D0", text: "#15803D", badge: "#16A34A" },
-  C: { bg: "#FFF1F2", border: "#FECDD3", text: "#BE123C", badge: "#E11D48" },
+  D: { bg: "#F6F4F8", border: "#D4CBDC", text: "#4A1F55", badge: "#6B4F78" },
+  M: { bg: "#F4F6FA", border: "#C8D4E4", text: "#2D4A6B", badge: "#4A6A96" },
+  A: { bg: "#FAF8F4", border: "#E0D8C4", text: "#5C4A28", badge: "#876E42" },
+  I: { bg: "#F4F8F5", border: "#C4D8CC", text: "#274D3A", badge: "#467560" },
+  C: { bg: "#F8F5F6", border: "#D8C8CC", text: "#55303A", badge: "#78505E" },
 };
 
 function PhaseCard({ phase, title, subtitle, children }: {
@@ -176,12 +176,11 @@ export function DmaicTab({ projectId }: { projectId: number }) {
   return (
     <div className="space-y-6 max-w-4xl">
       {/* Intro banner */}
-      <div className="rounded-xl px-5 py-4 text-sm text-purple-800 flex items-start gap-3"
-        style={{ backgroundColor: "#F5F0FF", border: "1.5px solid #C4B5FD" }}>
-        <div className="text-lg shrink-0">⚙️</div>
+      <div className="rounded-xl px-5 py-4 text-sm flex items-start gap-3"
+        style={{ backgroundColor: "#F5F4F6", border: "1px solid #DDD8E0", color: "#4A1F55" }}>
         <div>
           <p className="font-semibold mb-0.5">Six Sigma DMAIC-analyse</p>
-          <p className="text-xs text-purple-600">
+          <p className="text-xs text-gray-500">
             Bruk denne strukturerte metodikken for å definere, måle, analysere, forbedre og kontrollere
             prosessen du ønsker å automatisere. Fyll ut fasene i rekkefølge.
           </p>
