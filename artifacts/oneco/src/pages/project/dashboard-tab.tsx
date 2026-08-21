@@ -3,9 +3,11 @@ import {
   useGetProject,
   useUpdateProject,
   useListTasks,
+  useListEffects,
   useListUsers,
   getGetProjectQueryKey,
   getListTasksQueryKey,
+  getListEffectsQueryKey,
 } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency, formatNumber } from "@/lib/format";
@@ -31,6 +33,9 @@ export function DashboardTab({ projectId }: { projectId: number }) {
   const { data: tasks = [] } = useListTasks(projectId, undefined, {
     query: { enabled: !!projectId, queryKey: getListTasksQueryKey(projectId) },
   });
+  const { data: effects = [] } = useListEffects(projectId, {
+    query: { enabled: !!projectId, queryKey: getListEffectsQueryKey(projectId) },
+  });
   const { data: users = [] } = useListUsers({ query: { queryKey: ["users"], staleTime: 60_000 } });
   const updateProject = useUpdateProject();
 
@@ -54,6 +59,13 @@ export function DashboardTab({ projectId }: { projectId: number }) {
 
   if (isLoading) return <Skeleton className="h-[400px] w-full" />;
   if (!project) return null;
+
+  const goalUnit = project.goalSavingsUnit === "timer" ? "timer" : "kr";
+  const comparableEffects = effects.filter((effect) => effect.unit === goalUnit);
+  const realizedSavings = comparableEffects.reduce((total, effect) => total + Number(effect.value), 0);
+  const otherUnitEffects = effects.length - comparableEffects.length;
+  const formatSavings = (value: number) =>
+    goalUnit === "timer" ? `${formatNumber(value)} timer` : formatCurrency(value);
 
   return (
     <div className="space-y-6 mt-6">
@@ -167,21 +179,27 @@ export function DashboardTab({ projectId }: { projectId: number }) {
           <CardHeader>
             <CardTitle>Realisert vs Mål</CardTitle>
           </CardHeader>
-          <CardContent className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={[{ name: "Besparelser", Realisert: project.totalSavings || 0, Mål: project.goalSavingsValue || 0 }]}
+          <CardContent className="h-[340px]">
+            <div className="h-[280px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={[{ name: "Besparelser", Realisert: realizedSavings, Mål: project.goalSavingsValue || 0 }]}
                 margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="name" />
-                <YAxis tickFormatter={(val) => `${(val / 1000).toFixed(0)}k`} />
-                <RechartsTooltip formatter={(val: number) => formatCurrency(val)} />
-                <Legend />
-                <Bar dataKey="Realisert" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="Mål" fill="hsl(var(--muted-foreground))" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+                >
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="name" />
+                  <YAxis tickFormatter={(val) => goalUnit === "timer" ? `${formatNumber(val)}` : `${(val / 1000).toFixed(0)}k`} />
+                  <RechartsTooltip formatter={(val: number) => formatSavings(val)} />
+                  <Legend />
+                  <Bar dataKey="Realisert" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Mål" fill="hsl(var(--muted-foreground))" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Realisert: {formatSavings(realizedSavings)} basert på {comparableEffects.length} registrerte effekt{comparableEffects.length === 1 ? "" : "er"}.
+              {otherUnitEffects > 0 && ` ${otherUnitEffects} effekt${otherUnitEffects === 1 ? "" : "er"} i en annen enhet er ikke med i denne sammenligningen.`}
+            </p>
           </CardContent>
         </Card>
       </div>

@@ -1,4 +1,12 @@
-import { useGetGovernance, useUpsertGovernance, getGetGovernanceQueryKey, type ProjectGovernanceInput } from "@workspace/api-client-react";
+import {
+  useGetGovernance,
+  useGetProject,
+  useUpdateProject,
+  useUpsertGovernance,
+  getGetGovernanceQueryKey,
+  getGetProjectQueryKey,
+  type ProjectGovernanceInput,
+} from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
@@ -9,7 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, Save, Users, Briefcase, Link2, ShieldAlert, CheckSquare } from "lucide-react";
+import { Loader2, Save, Users, Briefcase, Link2, ShieldAlert, CheckSquare, Target } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { formatDate } from "@/lib/format";
 
@@ -139,7 +147,10 @@ export function GovernanceTab({ projectId }: { projectId: number }) {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-3xl">
+    <div className="space-y-6 max-w-3xl">
+      <ProjectGoalCard projectId={projectId} />
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
 
       {/* Status-badges øverst */}
       <div className="flex flex-wrap gap-2">
@@ -337,13 +348,117 @@ export function GovernanceTab({ projectId }: { projectId: number }) {
         </CardContent>
       </Card>
 
-      <div className="flex justify-end">
-        <Button type="submit" disabled={saving}>
-          {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-          Lagre prosjektinformasjon
-        </Button>
-      </div>
-    </form>
+        <div className="flex justify-end">
+          <Button type="submit" disabled={saving}>
+            {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+            Lagre prosjektinformasjon
+          </Button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+function ProjectGoalCard({ projectId }: { projectId: number }) {
+  const { data: project, isLoading } = useGetProject(projectId, {
+    query: { enabled: !!projectId, queryKey: getGetProjectQueryKey(projectId) },
+  });
+  const updateProject = useUpdateProject();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const [goalText, setGoalText] = useState("");
+  const [goalValue, setGoalValue] = useState("");
+  const [goalUnit, setGoalUnit] = useState<"kr" | "timer">("kr");
+  const [goalDate, setGoalDate] = useState("");
+
+  useEffect(() => {
+    if (!project) return;
+    setGoalText(project.goalText ?? "");
+    setGoalValue(project.goalSavingsValue == null ? "" : String(project.goalSavingsValue));
+    setGoalUnit(project.goalSavingsUnit === "timer" ? "timer" : "kr");
+    setGoalDate(project.goalDate ?? "");
+  }, [project]);
+
+  const saveGoal = () => {
+    updateProject.mutate(
+      {
+        id: projectId,
+        data: {
+          goalText: goalText.trim(),
+          goalSavingsValue: goalValue === "" ? undefined : Number(goalValue),
+          goalSavingsUnit: goalUnit,
+          goalDate: goalDate || undefined,
+        },
+      },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetProjectQueryKey(projectId) });
+          toast({ title: "Prosjektmål lagret" });
+        },
+        onError: () => toast({ title: "Kunne ikke lagre prosjektmål", variant: "destructive" }),
+      },
+    );
+  };
+
+  return (
+    <Card className="border-primary/20">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base flex items-center gap-2">
+          <Target className="h-4 w-4 text-primary" />
+          Mål med prosjektet
+        </CardTitle>
+        <CardDescription>
+          Beskriv ønsket resultat utfyllende. Denne teksten vises i sin helhet her, mens oversikten beholder et kort sammendrag.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {isLoading ? (
+          <div className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" /> Laster prosjektmål...
+          </div>
+        ) : (
+          <>
+            <Field label="Målbeskrivelse">
+              <Textarea
+                rows={5}
+                value={goalText}
+                onChange={(event) => setGoalText(event.target.value)}
+                placeholder="Beskriv hva prosjektet skal oppnå, hvem som får nytte av det og hvordan dere vet at målet er nådd..."
+              />
+            </Field>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <Field label="Målverdi">
+                <Input
+                  type="number"
+                  min={0}
+                  value={goalValue}
+                  onChange={(event) => setGoalValue(event.target.value)}
+                  placeholder="F.eks. 1800000"
+                />
+              </Field>
+              <Field label="Enhet">
+                <Select value={goalUnit} onValueChange={(value) => setGoalUnit(value as "kr" | "timer")}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="kr">NOK (kr)</SelectItem>
+                    <SelectItem value="timer">Timer</SelectItem>
+                  </SelectContent>
+                </Select>
+              </Field>
+              <Field label="Måldato">
+                <Input type="date" value={goalDate} onChange={(event) => setGoalDate(event.target.value)} />
+              </Field>
+            </div>
+            <div className="flex justify-end">
+              <Button type="button" onClick={saveGoal} disabled={updateProject.isPending}>
+                {updateProject.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                Lagre prosjektmål
+              </Button>
+            </div>
+          </>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 

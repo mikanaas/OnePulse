@@ -98,7 +98,22 @@ router.get("/projects/:id", requireAuth, async (req, res) => {
     .leftJoin(usersTable, eq(projectsTable.ownerId, usersTable.id))
     .where(eq(projectsTable.id, id));
   if (!row) { res.status(404).json({ error: "Not found" }); return; }
-  res.json({ ...row.project, ownerName: row.ownerName });
+
+  const [[effectTotal], [costTotal]] = await Promise.all([
+    db.select({ total: sql<number>`coalesce(sum(${effectEntriesTable.value}), 0)` })
+      .from(effectEntriesTable)
+      .where(eq(effectEntriesTable.projectId, id)),
+    db.select({ total: sql<number>`coalesce(sum(${costEntriesTable.value}), 0)` })
+      .from(costEntriesTable)
+      .where(eq(costEntriesTable.projectId, id)),
+  ]);
+
+  res.json({
+    ...row.project,
+    ownerName: row.ownerName,
+    totalSavings: Number(effectTotal?.total ?? 0),
+    totalCosts: Number(costTotal?.total ?? 0),
+  });
 });
 
 // PATCH /api/projects/:id

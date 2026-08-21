@@ -1,4 +1,4 @@
-import { useListEffects, useCreateEffect, useParseEffect, getListEffectsQueryKey } from "@workspace/api-client-react";
+import { useListEffects, useCreateEffect, useParseEffect, getGetProjectQueryKey, getListEffectsQueryKey } from "@workspace/api-client-react";
 import { useState } from "react";
 import { formatCurrency, formatDate, effectTypeMap, confidenceMap } from "@/lib/format";
 import { Button } from "@/components/ui/button";
@@ -56,6 +56,7 @@ export function EffectsTab({ projectId }: { projectId: number }) {
           setShowForm(false);
           form.reset();
           queryClient.invalidateQueries({ queryKey: getListEffectsQueryKey(projectId) });
+          queryClient.invalidateQueries({ queryKey: getGetProjectQueryKey(projectId) });
         },
       }
     );
