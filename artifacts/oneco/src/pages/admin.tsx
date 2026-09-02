@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useListUsers, useCreateUser } from "@workspace/api-client-react";
+import { useCreateUser, useDeleteUser, useGetMe, useListUsers } from "@workspace/api-client-react";
 import { AppLayout } from "@/components/layout";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -38,7 +38,9 @@ export default function AdminPage() {
   const { getToken } = useAuth();
   const { toast } = useToast();
   const { data: users, isLoading, refetch: refetchUsers } = useListUsers();
+  const { data: currentUser } = useGetMe();
   const createUser = useCreateUser();
+  const deleteUser = useDeleteUser();
 
   const [seedStatus, setSeedStatus] = useState<{ seeded: boolean; projectCount: number } | null>(null);
   const [seedLoading, setSeedLoading] = useState(false);
@@ -49,6 +51,7 @@ export default function AdminPage() {
   const [newUserEmail, setNewUserEmail] = useState("");
   const [newUserRole, setNewUserRole] = useState<"user" | "admin">("user");
   const [newUserLoading, setNewUserLoading] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: number; name: string; email: string } | null>(null);
 
   async function authHeader(): Promise<Record<string, string>> {
     const token = await getToken();
@@ -118,6 +121,25 @@ export default function AdminPage() {
       toast({ title: "Kunne ikke opprette bruker", description: "Sjekk at e-postadressen ikke allerede er i bruk.", variant: "destructive" });
     } finally {
       setNewUserLoading(false);
+    }
+  }
+
+  async function handleDeleteUser() {
+    if (!deleteTarget) return;
+    try {
+      await deleteUser.mutateAsync({ id: deleteTarget.id });
+      setDeleteTarget(null);
+      await refetchUsers();
+      toast({
+        title: "Bruker slettet",
+        description: `${deleteTarget.name} har mistet tilgangen til OnePulse.`,
+      });
+    } catch {
+      toast({
+        title: "Kunne ikke slette bruker",
+        description: "Brukeren ble ikke endret. Prøv igjen.",
+        variant: "destructive",
+      });
     }
   }
 
@@ -200,18 +222,19 @@ export default function AdminPage() {
                 <TableHead>Status</TableHead>
                 <TableHead>Sist innlogget</TableHead>
                 <TableHead className="text-right">Prosjekter</TableHead>
+                <TableHead className="w-[88px] text-right">Handling</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                     <Loader2 className="h-6 w-6 animate-spin mx-auto" />
                   </TableCell>
                 </TableRow>
               ) : users?.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                     Ingen brukere funnet.
                   </TableCell>
                 </TableRow>
@@ -235,6 +258,19 @@ export default function AdminPage() {
                     </TableCell>
                     <TableCell>{formatDateTime(user.lastLogin)}</TableCell>
                     <TableCell className="text-right">{user.projectCount}</TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-muted-foreground hover:bg-red-50 hover:text-red-600"
+                        title={user.id === currentUser?.id ? "Du kan ikke slette deg selv" : `Slett ${user.name}`}
+                        aria-label={user.id === currentUser?.id ? "Du kan ikke slette deg selv" : `Slett ${user.name}`}
+                        disabled={user.id === currentUser?.id || deleteUser.isPending}
+                        onClick={() => setDeleteTarget({ id: user.id, name: user.name, email: user.email })}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))
               )}
@@ -297,6 +333,38 @@ export default function AdminPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && !deleteUser.isPending && setDeleteTarget(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Slett bruker?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteTarget && (
+                <>
+                  <strong>{deleteTarget.name}</strong> ({deleteTarget.email}) mister tilgangen til OnePulse.
+                  Brukerens prosjekter og historikk beholdes som deaktivert, slik at rapporter og sporbarhet ikke går tapt.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteUser.isPending}>Avbryt</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700"
+              disabled={deleteUser.isPending}
+              onClick={(event) => {
+                event.preventDefault();
+                handleDeleteUser();
+              }}
+            >
+              {deleteUser.isPending ? "Sletter..." : "Slett bruker"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppLayout>
   );
 }

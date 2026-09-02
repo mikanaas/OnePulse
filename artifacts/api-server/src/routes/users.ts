@@ -130,7 +130,13 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
 // DELETE /api/users/:id
 router.delete("/users/:id", requireAdmin, async (req, res) => {
   const id = Number(req.params.id);
-  await db.update(usersTable).set({ active: false }).where(eq(usersTable.id, id));
+  const currentUser = (req as any).dbUser;
+  if (currentUser?.id === id) {
+    res.status(400).json({ error: "Du kan ikke slette din egen brukerkonto" });
+    return;
+  }
+  const [user] = await db.update(usersTable).set({ active: false }).where(eq(usersTable.id, id)).returning();
+  if (!user) { res.status(404).json({ error: "Not found" }); return; }
   res.status(204).end();
 });
 
