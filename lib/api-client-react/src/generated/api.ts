@@ -622,7 +622,7 @@ export const getDeleteUserUrl = (id: number,) => {
 }
 
 /**
- * @summary Anonymize/delete user (admin only, GDPR)
+ * @summary Deactivate user (admin only)
  */
 export const deleteUser = async (id: number, options?: RequestInit): Promise<void> => {
 
@@ -670,7 +670,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type DeleteUserMutationError = ErrorType<unknown>
 
     /**
- * @summary Anonymize/delete user (admin only, GDPR)
+ * @summary Deactivate user (admin only)
  */
 export const useDeleteUser = <TError = ErrorType<unknown>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteUser>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
@@ -681,6 +681,76 @@ export const useDeleteUser = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getDeleteUserMutationOptions(options));
+    }
+
+export const getPermanentlyDeleteUserUrl = (id: number,) => {
+
+
+
+
+  return `/api/users/${id}/permanent`
+}
+
+/**
+ * @summary Permanently delete user (admin only)
+ */
+export const permanentlyDeleteUser = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getPermanentlyDeleteUserUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getPermanentlyDeleteUserMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof permanentlyDeleteUser>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof permanentlyDeleteUser>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['permanentlyDeleteUser'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof permanentlyDeleteUser>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  permanentlyDeleteUser(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PermanentlyDeleteUserMutationResult = NonNullable<Awaited<ReturnType<typeof permanentlyDeleteUser>>>
+
+    export type PermanentlyDeleteUserMutationError = ErrorType<void>
+
+    /**
+ * @summary Permanently delete user (admin only)
+ */
+export const usePermanentlyDeleteUser = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof permanentlyDeleteUser>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof permanentlyDeleteUser>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getPermanentlyDeleteUserMutationOptions(options));
     }
 
 export const getListProjectsUrl = (params?: ListProjectsParams,) => {

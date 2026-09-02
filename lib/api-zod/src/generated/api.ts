@@ -131,9 +131,17 @@ export const UpdateUserResponse = zod.object({
 
 
 /**
- * @summary Anonymize/delete user (admin only, GDPR)
+ * @summary Deactivate user (admin only)
  */
 export const DeleteUserParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Permanently delete user (admin only)
+ */
+export const PermanentlyDeleteUserParams = zod.object({
   "id": zod.coerce.number()
 })
 

@@ -2,7 +2,19 @@ import { Router } from "express";
 import { getAuth } from "@clerk/express";
 import { db } from "../lib/db";
 import { requireAuth, requireAdmin } from "../lib/requireAuth";
-import { usersTable } from "@workspace/db";
+import {
+  activityLogTable,
+  auditLogTable,
+  costEntriesTable,
+  effectEntriesTable,
+  projectLinksTable,
+  projectMembersTable,
+  projectsTable,
+  proposalsTable,
+  taskCommentsTable,
+  tasksTable,
+  usersTable,
+} from "@workspace/db";
 import { eq, and, like, not } from "drizzle-orm";
 
 const router = Router();
@@ -137,6 +149,49 @@ router.delete("/users/:id", requireAdmin, async (req, res) => {
   }
   const [user] = await db.update(usersTable).set({ active: false }).where(eq(usersTable.id, id)).returning();
   if (!user) { res.status(404).json({ error: "Not found" }); return; }
+  res.status(204).end();
+});
+
+// DELETE /api/users/:id/permanent
+router.delete("/users/:id/permanent", requireAdmin, async (req, res) => {
+  const id = Number(req.params.id);
+  const currentUser = (req as any).dbUser;
+  if (currentUser?.id === id) {
+    res.status(400).json({ error: "Du kan ikke slette din egen brukerkonto permanent" });
+    return;
+  }
+
+  const [user] = await db.select({ id: usersTable.id }).from(usersTable).where(eq(usersTable.id, id)).limit(1);
+  if (!user) {
+    res.status(404).json({ error: "Brukeren finnes ikke" });
+    return;
+  }
+
+  const [ownedProject] = await db
+    .select({ id: projectsTable.id })
+    .from(projectsTable)
+    .where(eq(projectsTable.ownerId, id))
+    .limit(1);
+  if (ownedProject) {
+    res.status(409).json({
+      error: "Brukeren eier ett eller flere prosjekter. Flytt prosjekteierskapet før brukeren slettes permanent.",
+    });
+    return;
+  }
+
+  await db.transaction(async (tx) => {
+    await tx.delete(projectMembersTable).where(eq(projectMembersTable.userId, id));
+    await tx.delete(taskCommentsTable).where(eq(taskCommentsTable.userId, id));
+    await tx.update(tasksTable).set({ assigneeId: null }).where(eq(tasksTable.assigneeId, id));
+    await tx.update(effectEntriesTable).set({ registeredBy: null }).where(eq(effectEntriesTable.registeredBy, id));
+    await tx.update(costEntriesTable).set({ registeredBy: null }).where(eq(costEntriesTable.registeredBy, id));
+    await tx.update(activityLogTable).set({ userId: null }).where(eq(activityLogTable.userId, id));
+    await tx.update(auditLogTable).set({ userId: null }).where(eq(auditLogTable.userId, id));
+    await tx.update(projectLinksTable).set({ addedBy: null }).where(eq(projectLinksTable.addedBy, id));
+    await tx.update(proposalsTable).set({ submittedBy: null }).where(eq(proposalsTable.submittedBy, id));
+    await tx.delete(usersTable).where(eq(usersTable.id, id));
+  });
+
   res.status(204).end();
 });
 

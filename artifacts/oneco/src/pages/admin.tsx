@@ -1,10 +1,16 @@
 import { useState, useEffect } from "react";
-import { useCreateUser, useDeleteUser, useGetMe, useListUsers } from "@workspace/api-client-react";
+import {
+  useCreateUser,
+  useDeleteUser,
+  useGetMe,
+  useListUsers,
+  usePermanentlyDeleteUser,
+} from "@workspace/api-client-react";
 import { AppLayout } from "@/components/layout";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { formatDateTime } from "@/lib/format";
-import { Loader2, Plus, Shield, User as UserIcon, Download, Trash2 } from "lucide-react";
+import { Download, Loader2, Plus, Shield, Trash2, User as UserIcon, UserRoundX } from "lucide-react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -40,7 +46,8 @@ export default function AdminPage() {
   const { data: users, isLoading, refetch: refetchUsers } = useListUsers();
   const { data: currentUser } = useGetMe();
   const createUser = useCreateUser();
-  const deleteUser = useDeleteUser();
+  const deactivateUser = useDeleteUser();
+  const permanentlyDeleteUser = usePermanentlyDeleteUser();
 
   const [seedStatus, setSeedStatus] = useState<{ seeded: boolean; projectCount: number } | null>(null);
   const [seedLoading, setSeedLoading] = useState(false);
@@ -51,7 +58,8 @@ export default function AdminPage() {
   const [newUserEmail, setNewUserEmail] = useState("");
   const [newUserRole, setNewUserRole] = useState<"user" | "admin">("user");
   const [newUserLoading, setNewUserLoading] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<{ id: number; name: string; email: string } | null>(null);
+  const [deactivateTarget, setDeactivateTarget] = useState<{ id: number; name: string; email: string } | null>(null);
+  const [permanentDeleteTarget, setPermanentDeleteTarget] = useState<{ id: number; name: string; email: string } | null>(null);
 
   async function authHeader(): Promise<Record<string, string>> {
     const token = await getToken();
@@ -124,20 +132,42 @@ export default function AdminPage() {
     }
   }
 
-  async function handleDeleteUser() {
-    if (!deleteTarget) return;
+  async function handleDeactivateUser() {
+    if (!deactivateTarget) return;
     try {
-      await deleteUser.mutateAsync({ id: deleteTarget.id });
-      setDeleteTarget(null);
+      await deactivateUser.mutateAsync({ id: deactivateTarget.id });
+      setDeactivateTarget(null);
       await refetchUsers();
       toast({
-        title: "Bruker slettet",
-        description: `${deleteTarget.name} har mistet tilgangen til OnePulse.`,
+        title: "Bruker deaktivert",
+        description: `${deactivateTarget.name} har mistet tilgangen til OnePulse.`,
       });
     } catch {
       toast({
-        title: "Kunne ikke slette bruker",
+        title: "Kunne ikke deaktivere bruker",
         description: "Brukeren ble ikke endret. Prøv igjen.",
+        variant: "destructive",
+      });
+    }
+  }
+
+  async function handlePermanentDeleteUser() {
+    if (!permanentDeleteTarget) return;
+    try {
+      await permanentlyDeleteUser.mutateAsync({ id: permanentDeleteTarget.id });
+      setPermanentDeleteTarget(null);
+      await refetchUsers();
+      toast({
+        title: "Bruker slettet permanent",
+        description: `${permanentDeleteTarget.name} er fjernet fra OnePulse.`,
+      });
+    } catch (error) {
+      const message = error instanceof Error && error.message.includes(": ")
+        ? error.message.slice(error.message.indexOf(": ") + 2)
+        : "Brukeren ble ikke slettet. Prøv igjen.";
+      toast({
+        title: "Kunne ikke slette bruker permanent",
+        description: message,
         variant: "destructive",
       });
     }
@@ -222,7 +252,7 @@ export default function AdminPage() {
                 <TableHead>Status</TableHead>
                 <TableHead>Sist innlogget</TableHead>
                 <TableHead className="text-right">Prosjekter</TableHead>
-                <TableHead className="w-[88px] text-right">Handling</TableHead>
+                <TableHead className="w-[120px] text-right">Handling</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -259,17 +289,32 @@ export default function AdminPage() {
                     <TableCell>{formatDateTime(user.lastLogin)}</TableCell>
                     <TableCell className="text-right">{user.projectCount}</TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-muted-foreground hover:bg-red-50 hover:text-red-600"
-                        title={user.id === currentUser?.id ? "Du kan ikke slette deg selv" : `Slett ${user.name}`}
-                        aria-label={user.id === currentUser?.id ? "Du kan ikke slette deg selv" : `Slett ${user.name}`}
-                        disabled={user.id === currentUser?.id || deleteUser.isPending}
-                        onClick={() => setDeleteTarget({ id: user.id, name: user.name, email: user.email })}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <div className="flex justify-end gap-1">
+                        {user.active && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-muted-foreground hover:bg-amber-50 hover:text-amber-700"
+                            title={user.id === currentUser?.id ? "Du kan ikke deaktivere deg selv" : `Deaktiver ${user.name}`}
+                            aria-label={user.id === currentUser?.id ? "Du kan ikke deaktivere deg selv" : `Deaktiver ${user.name}`}
+                            disabled={user.id === currentUser?.id || deactivateUser.isPending || permanentlyDeleteUser.isPending}
+                            onClick={() => setDeactivateTarget({ id: user.id, name: user.name, email: user.email })}
+                          >
+                            <UserRoundX className="h-4 w-4" />
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-muted-foreground hover:bg-red-50 hover:text-red-600"
+                          title={user.id === currentUser?.id ? "Du kan ikke slette deg selv" : `Slett ${user.name} permanent`}
+                          aria-label={user.id === currentUser?.id ? "Du kan ikke slette deg selv" : `Slett ${user.name} permanent`}
+                          disabled={user.id === currentUser?.id || deactivateUser.isPending || permanentlyDeleteUser.isPending}
+                          onClick={() => setPermanentDeleteTarget({ id: user.id, name: user.name, email: user.email })}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
@@ -335,32 +380,65 @@ export default function AdminPage() {
       </Dialog>
 
       <AlertDialog
-        open={!!deleteTarget}
-        onOpenChange={(open) => !open && !deleteUser.isPending && setDeleteTarget(null)}
+        open={!!deactivateTarget}
+        onOpenChange={(open) => !open && !deactivateUser.isPending && setDeactivateTarget(null)}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Slett bruker?</AlertDialogTitle>
+            <AlertDialogTitle>Deaktiver bruker?</AlertDialogTitle>
             <AlertDialogDescription>
-              {deleteTarget && (
+              {deactivateTarget && (
                 <>
-                  <strong>{deleteTarget.name}</strong> ({deleteTarget.email}) mister tilgangen til OnePulse.
-                  Brukerens prosjekter og historikk beholdes som deaktivert, slik at rapporter og sporbarhet ikke går tapt.
+                  <strong>{deactivateTarget.name}</strong> ({deactivateTarget.email}) mister tilgangen til OnePulse.
+                  Brukerens prosjekter og historikk beholdes.
                 </>
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteUser.isPending}>Avbryt</AlertDialogCancel>
+            <AlertDialogCancel disabled={deactivateUser.isPending}>Avbryt</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-red-600 hover:bg-red-700"
-              disabled={deleteUser.isPending}
+              className="bg-amber-600 hover:bg-amber-700"
+              disabled={deactivateUser.isPending}
               onClick={(event) => {
                 event.preventDefault();
-                handleDeleteUser();
+                handleDeactivateUser();
               }}
             >
-              {deleteUser.isPending ? "Sletter..." : "Slett bruker"}
+              {deactivateUser.isPending ? "Deaktiverer..." : "Deaktiver bruker"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={!!permanentDeleteTarget}
+        onOpenChange={(open) => !open && !permanentlyDeleteUser.isPending && setPermanentDeleteTarget(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Slett bruker permanent?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {permanentDeleteTarget && (
+                <>
+                  <strong>{permanentDeleteTarget.name}</strong> ({permanentDeleteTarget.email}) fjernes permanent fra OnePulse.
+                  Medlemskap og kommentarer fra brukeren slettes, og handlingen kan ikke angres. Dersom brukeren eier prosjekter,
+                  må eierskapet flyttes før sletting.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={permanentlyDeleteUser.isPending}>Avbryt</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700"
+              disabled={permanentlyDeleteUser.isPending}
+              onClick={(event) => {
+                event.preventDefault();
+                handlePermanentDeleteUser();
+              }}
+            >
+              {permanentlyDeleteUser.isPending ? "Sletter..." : "Slett permanent"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

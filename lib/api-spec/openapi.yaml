@@ -164,7 +164,7 @@ paths:
     delete:
       operationId: deleteUser
       tags: [users]
-      summary: Anonymize/delete user (admin only, GDPR)
+      summary: Deactivate user (admin only)
       parameters:
         - name: id
           in: path
@@ -173,7 +173,28 @@ paths:
             type: integer
       responses:
         "204":
-          description: Deleted
+          description: Deactivated
+
+  /users/{id}/permanent:
+    delete:
+      operationId: permanentlyDeleteUser
+      tags: [users]
+      summary: Permanently delete user (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Permanently deleted
+        "400":
+          description: Cannot delete current user
+        "404":
+          description: User not found
+        "409":
+          description: User owns projects that must be reassigned first
 
   # ─── Projects ─────────────────────────────────────────────────────
   /projects:
