@@ -127,12 +127,33 @@ router.get("/users/:id", requireAdmin, async (req, res) => {
   res.json(user);
 });
 
-// PUT /api/users/:id
-router.put("/users/:id", requireAdmin, async (req, res) => {
+// PATCH /api/users/:id
+router.patch("/users/:id", requireAdmin, async (req, res) => {
   const id = Number(req.params.id);
   const { name, email, systemRole, active } = req.body as { name?: string; email?: string; systemRole?: string; active?: boolean };
+  const normalizedEmail = email?.trim().toLowerCase();
+  if (email != null && !normalizedEmail) {
+    res.status(400).json({ error: "E-postadressen kan ikke være tom" });
+    return;
+  }
+  if (normalizedEmail != null) {
+    const [existingUser] = await db
+      .select({ id: usersTable.id })
+      .from(usersTable)
+      .where(and(eq(usersTable.email, normalizedEmail), not(eq(usersTable.id, id))))
+      .limit(1);
+    if (existingUser) {
+      res.status(409).json({ error: "E-postadressen er allerede i bruk" });
+      return;
+    }
+  }
   const [user] = await db.update(usersTable)
-    .set({ ...(name != null ? { name } : {}), ...(email != null ? { email } : {}), ...(systemRole != null ? { systemRole } : {}), ...(active != null ? { active } : {}) })
+    .set({
+      ...(name != null ? { name: name.trim() } : {}),
+      ...(normalizedEmail != null ? { email: normalizedEmail } : {}),
+      ...(systemRole != null ? { systemRole } : {}),
+      ...(active != null ? { active } : {}),
+    })
     .where(eq(usersTable.id, id))
     .returning();
   if (!user) { res.status(404).json({ error: "Not found" }); return; }

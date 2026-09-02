@@ -5,12 +5,13 @@ import {
   useGetMe,
   useListUsers,
   usePermanentlyDeleteUser,
+  useUpdateUser,
 } from "@workspace/api-client-react";
 import { AppLayout } from "@/components/layout";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { formatDateTime } from "@/lib/format";
-import { Download, Loader2, Plus, Shield, Trash2, User as UserIcon, UserRoundX } from "lucide-react";
+import { Download, Loader2, Pencil, Plus, Shield, Trash2, User as UserIcon, UserRoundX } from "lucide-react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,6 +47,7 @@ export default function AdminPage() {
   const { data: users, isLoading, refetch: refetchUsers } = useListUsers();
   const { data: currentUser } = useGetMe();
   const createUser = useCreateUser();
+  const updateUser = useUpdateUser();
   const deactivateUser = useDeleteUser();
   const permanentlyDeleteUser = usePermanentlyDeleteUser();
 
@@ -58,6 +60,10 @@ export default function AdminPage() {
   const [newUserEmail, setNewUserEmail] = useState("");
   const [newUserRole, setNewUserRole] = useState<"user" | "admin">("user");
   const [newUserLoading, setNewUserLoading] = useState(false);
+  const [editTarget, setEditTarget] = useState<{ id: number; name: string; email: string; systemRole: "user" | "admin" } | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [editRole, setEditRole] = useState<"user" | "admin">("user");
   const [deactivateTarget, setDeactivateTarget] = useState<{ id: number; name: string; email: string } | null>(null);
   const [permanentDeleteTarget, setPermanentDeleteTarget] = useState<{ id: number; name: string; email: string } | null>(null);
 
@@ -129,6 +135,47 @@ export default function AdminPage() {
       toast({ title: "Kunne ikke opprette bruker", description: "Sjekk at e-postadressen ikke allerede er i bruk.", variant: "destructive" });
     } finally {
       setNewUserLoading(false);
+    }
+  }
+
+  function openEditUser(user: { id: number; name: string; email: string; systemRole: string }) {
+    setEditTarget({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      systemRole: user.systemRole === "admin" ? "admin" : "user",
+    });
+    setEditName(user.name);
+    setEditEmail(user.email);
+    setEditRole(user.systemRole === "admin" ? "admin" : "user");
+  }
+
+  async function handleUpdateUser() {
+    if (!editTarget || !editName.trim() || !editEmail.trim()) return;
+    try {
+      await updateUser.mutateAsync({
+        id: editTarget.id,
+        data: {
+          name: editName.trim(),
+          email: editEmail.trim(),
+          systemRole: editRole,
+        },
+      });
+      setEditTarget(null);
+      await refetchUsers();
+      toast({
+        title: "Brukerprofil oppdatert",
+        description: `${editName.trim()} er lagret.`,
+      });
+    } catch (error) {
+      const message = error instanceof Error && error.message.includes(": ")
+        ? error.message.slice(error.message.indexOf(": ") + 2)
+        : "Brukerprofilen ble ikke endret. Prøv igjen.";
+      toast({
+        title: "Kunne ikke oppdatere brukerprofil",
+        description: message,
+        variant: "destructive",
+      });
     }
   }
 
@@ -252,7 +299,7 @@ export default function AdminPage() {
                 <TableHead>Status</TableHead>
                 <TableHead>Sist innlogget</TableHead>
                 <TableHead className="text-right">Prosjekter</TableHead>
-                <TableHead className="w-[120px] text-right">Handling</TableHead>
+                <TableHead className="w-[152px] text-right">Handling</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -290,6 +337,17 @@ export default function AdminPage() {
                     <TableCell className="text-right">{user.projectCount}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-muted-foreground hover:bg-purple-50 hover:text-purple-700"
+                          title={`Rediger ${user.name}`}
+                          aria-label={`Rediger ${user.name}`}
+                          disabled={updateUser.isPending || deactivateUser.isPending || permanentlyDeleteUser.isPending}
+                          onClick={() => openEditUser(user)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
                         {user.active && (
                           <Button
                             variant="ghost"
@@ -374,6 +432,66 @@ export default function AdminPage() {
             >
               {newUserLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               Opprett bruker
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!editTarget} onOpenChange={(open) => !open && !updateUser.isPending && setEditTarget(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Rediger brukerprofil</DialogTitle>
+            <DialogDescription>
+              Oppdater navn, e-postadresse eller rolle for {editTarget?.name}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="edit-user-name">Navn</Label>
+              <Input
+                id="edit-user-name"
+                value={editName}
+                onChange={(event) => setEditName(event.target.value)}
+                disabled={updateUser.isPending}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="edit-user-email">E-postadresse</Label>
+              <Input
+                id="edit-user-email"
+                type="email"
+                value={editEmail}
+                onChange={(event) => setEditEmail(event.target.value)}
+                disabled={updateUser.isPending}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="edit-user-role">Rolle</Label>
+              <Select
+                value={editRole}
+                onValueChange={(value) => setEditRole(value as "user" | "admin")}
+                disabled={updateUser.isPending}
+              >
+                <SelectTrigger id="edit-user-role">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="user">Bruker</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditTarget(null)} disabled={updateUser.isPending}>
+              Avbryt
+            </Button>
+            <Button
+              onClick={handleUpdateUser}
+              disabled={updateUser.isPending || !editName.trim() || !editEmail.trim()}
+            >
+              {updateUser.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Lagre endringer
             </Button>
           </DialogFooter>
         </DialogContent>
