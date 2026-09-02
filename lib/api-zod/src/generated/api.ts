@@ -141,10 +141,13 @@ export const DeleteUserParams = zod.object({
 /**
  * @summary List projects accessible to current user
  */
+export const listProjectsQueryArchivedDefault = false;
+
 export const ListProjectsQueryParams = zod.object({
   "status": zod.coerce.string().optional(),
   "businessUnit": zod.coerce.string().optional(),
-  "search": zod.coerce.string().optional()
+  "search": zod.coerce.string().optional(),
+  "archived": zod.coerce.boolean().default(listProjectsQueryArchivedDefault).describe('Return archived projects when true; active projects by default')
 })
 
 export const ListProjectsResponseItem = zod.object({
@@ -159,6 +162,7 @@ export const ListProjectsResponseItem = zod.object({
   "plannedEndDate": zod.string().nullish(),
   "goalSavingsValue": zod.number().nullish(),
   "goalSavingsUnit": zod.string().nullish(),
+  "archivedAt": zod.coerce.date().nullish(),
   "createdAt": zod.string(),
   "memberCount": zod.number().optional(),
   "taskCount": zod.number().optional(),
@@ -212,6 +216,7 @@ export const GetProjectResponse = zod.object({
   "goalSavingsUnit": zod.union([zod.literal('kr'),zod.literal('timer'),zod.literal(null)]).nullish(),
   "goalDate": zod.string().nullish(),
   "estimatedHours": zod.number().nullish(),
+  "archivedAt": zod.coerce.date().nullish(),
   "createdAt": zod.string(),
   "memberCount": zod.number().optional(),
   "taskCount": zod.number().optional(),
@@ -261,6 +266,7 @@ export const UpdateProjectResponse = zod.object({
   "goalSavingsUnit": zod.union([zod.literal('kr'),zod.literal('timer'),zod.literal(null)]).nullish(),
   "goalDate": zod.string().nullish(),
   "estimatedHours": zod.number().nullish(),
+  "archivedAt": zod.coerce.date().nullish(),
   "createdAt": zod.string(),
   "memberCount": zod.number().optional(),
   "taskCount": zod.number().optional(),
@@ -271,10 +277,42 @@ export const UpdateProjectResponse = zod.object({
 
 
 /**
- * @summary Delete project
+ * @summary Archive project while keeping its data for restoration
  */
-export const DeleteProjectParams = zod.object({
+export const ArchiveProjectParams = zod.object({
   "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Restore an archived project
+ */
+export const RestoreProjectParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const RestoreProjectResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "description": zod.string().nullish(),
+  "businessUnit": zod.string().nullish(),
+  "status": zod.enum(['ide', 'pagaende', 'pause', 'fullfort', 'avsluttet']),
+  "ownerId": zod.number(),
+  "ownerName": zod.string().nullish(),
+  "startDate": zod.string().nullish(),
+  "plannedEndDate": zod.string().nullish(),
+  "goalText": zod.string().nullish(),
+  "goalSavingsValue": zod.number().nullish(),
+  "goalSavingsUnit": zod.union([zod.literal('kr'),zod.literal('timer'),zod.literal(null)]).nullish(),
+  "goalDate": zod.string().nullish(),
+  "estimatedHours": zod.number().nullish(),
+  "archivedAt": zod.coerce.date().nullish(),
+  "createdAt": zod.string(),
+  "memberCount": zod.number().optional(),
+  "taskCount": zod.number().optional(),
+  "completedTaskCount": zod.number().optional(),
+  "totalSavings": zod.number().optional(),
+  "totalCosts": zod.number().optional()
 })
 
 

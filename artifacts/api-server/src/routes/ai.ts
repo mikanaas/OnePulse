@@ -9,7 +9,7 @@ import {
   costEntriesTable,
   activityLogTable,
 } from "@workspace/db";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, isNull } from "drizzle-orm";
 import { logger } from "../lib/logger";
 
 const router = Router();
@@ -75,9 +75,12 @@ router.post("/ai/portfolio/query", requireAuth, async (req, res) => {
   const { query } = req.body as { query: string };
   if (!query) { res.status(400).json({ error: "query required" }); return; }
 
-  const projects = await db.select().from(projectsTable);
-  const effects = await db.select().from(effectEntriesTable);
-  const costs = await db.select().from(costEntriesTable);
+  const projects = await db.select().from(projectsTable).where(isNull(projectsTable.archivedAt));
+  const activeProjectIds = new Set(projects.map((project) => project.id));
+  const effects = (await db.select().from(effectEntriesTable))
+    .filter((entry) => activeProjectIds.has(entry.projectId));
+  const costs = (await db.select().from(costEntriesTable))
+    .filter((entry) => activeProjectIds.has(entry.projectId));
 
   const totalSavings = effects.reduce((s, e) => s + Number(e.value), 0);
   const totalCosts = costs.reduce((s, c) => s + Number(c.value), 0);
@@ -160,7 +163,7 @@ Returner KUN gyldig JSON, ingen annen tekst.`;
 // POST /api/ai/portfolio-analysis
 router.post("/ai/portfolio-analysis", requireAuth, async (req, res) => {
   req.log.info("portfolio-analysis: handler entered");
-  const projects = await db.select().from(projectsTable);
+  const projects = await db.select().from(projectsTable).where(isNull(projectsTable.archivedAt));
   const allTasks = await db.select().from(tasksTable);
   const allEffects = await db.select().from(effectEntriesTable);
   const allCosts = await db.select().from(costEntriesTable);

@@ -19,6 +19,7 @@ export const projectsTable = pgTable("projects", {
   estimatedHours: numeric("estimated_hours", { precision: 10, scale: 2 }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
+  archivedAt: timestamp("archived_at", { withTimezone: true }),
 });
 
 export const projectMembersTable = pgTable("project_members", {
@@ -29,7 +30,7 @@ export const projectMembersTable = pgTable("project_members", {
   joinedAt: timestamp("joined_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-export const insertProjectSchema = createInsertSchema(projectsTable).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertProjectSchema = createInsertSchema(projectsTable).omit({ id: true, createdAt: true, updatedAt: true, archivedAt: true });
 export type InsertProject = z.infer<typeof insertProjectSchema>;
 export type Project = typeof projectsTable.$inferSelect;
 

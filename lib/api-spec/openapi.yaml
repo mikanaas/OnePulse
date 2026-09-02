@@ -194,6 +194,12 @@ paths:
           in: query
           schema:
             type: string
+        - name: archived
+          in: query
+          description: Return archived projects when true; active projects by default
+          schema:
+            type: boolean
+            default: false
       responses:
         "200":
           description: Projects list
@@ -265,9 +271,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/Project"
     delete:
-      operationId: deleteProject
+      operationId: archiveProject
       tags: [projects]
-      summary: Delete project
+      summary: Archive project while keeping its data for restoration
       parameters:
         - name: id
           in: path
@@ -276,7 +282,26 @@ paths:
             type: integer
       responses:
         "204":
-          description: Deleted
+          description: Archived
+    post:
+      operationId: restoreProject
+      tags: [projects]
+      summary: Restore an archived project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Restored project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+        "404":
+          description: Archived project not found
 
   /projects/{id}/members:
     get:
@@ -1396,6 +1421,9 @@ components:
           type: ["string", "null"]
         estimatedHours:
           type: ["number", "null"]
+        archivedAt:
+          type: ["string", "null"]
+          format: date-time
         createdAt:
           type: string
         memberCount:
@@ -1436,6 +1464,9 @@ components:
           type: ["number", "null"]
         goalSavingsUnit:
           type: ["string", "null"]
+        archivedAt:
+          type: ["string", "null"]
+          format: date-time
         createdAt:
           type: string
         memberCount:

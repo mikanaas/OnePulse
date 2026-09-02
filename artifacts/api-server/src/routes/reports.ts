@@ -9,7 +9,7 @@ import {
   tasksTable,
   usersTable,
 } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { eq, isNull } from "drizzle-orm";
 
 const router = Router();
 
@@ -18,11 +18,16 @@ router.get("/reports/excel", requireAuth, async (_req, res) => {
   const projects = await db
     .select({ project: projectsTable, ownerName: usersTable.name })
     .from(projectsTable)
-    .leftJoin(usersTable, eq(projectsTable.ownerId, usersTable.id));
+    .leftJoin(usersTable, eq(projectsTable.ownerId, usersTable.id))
+    .where(isNull(projectsTable.archivedAt));
 
-  const effects = await db.select().from(effectEntriesTable);
-  const costs = await db.select().from(costEntriesTable);
-  const tasks = await db.select().from(tasksTable);
+  const activeProjectIds = new Set(projects.map(({ project }) => project.id));
+  const effects = (await db.select().from(effectEntriesTable))
+    .filter((entry) => activeProjectIds.has(entry.projectId));
+  const costs = (await db.select().from(costEntriesTable))
+    .filter((entry) => activeProjectIds.has(entry.projectId));
+  const tasks = (await db.select().from(tasksTable))
+    .filter((task) => activeProjectIds.has(task.projectId));
 
   const workbook = new ExcelJS.Workbook();
   workbook.creator = "OneCo";

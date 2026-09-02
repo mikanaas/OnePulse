@@ -2,7 +2,7 @@ import { Router } from "express";
 import { db } from "../lib/db";
 import { requireAuth } from "../lib/requireAuth";
 import { tasksTable, taskCommentsTable, usersTable, projectsTable } from "@workspace/db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, isNull } from "drizzle-orm";
 
 const router = Router();
 
@@ -74,7 +74,10 @@ router.delete("/projects/:projectId/tasks/:id", requireAuth, async (req, res) =>
 router.get("/tasks/mine", requireAuth, async (req, res) => {
   const user = (req as any).dbUser;
   const { status } = req.query as { status?: string };
-  const conditions: any[] = [eq(tasksTable.assigneeId, user.id)];
+  const conditions: any[] = [
+    eq(tasksTable.assigneeId, user.id),
+    isNull(projectsTable.archivedAt),
+  ];
   if (status) conditions.push(eq(tasksTable.status, status));
   const rows = await db
     .select({ task: tasksTable, projectName: projectsTable.name })

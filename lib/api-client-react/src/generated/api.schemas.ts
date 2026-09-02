@@ -134,6 +134,8 @@ export interface Project {
   goalDate?: string | null;
   /** @nullable */
   estimatedHours?: number | null;
+  /** @nullable */
+  archivedAt?: string | null;
   createdAt: string;
   memberCount?: number;
   taskCount?: number;
@@ -172,6 +174,8 @@ export interface ProjectSummary {
   goalSavingsValue?: number | null;
   /** @nullable */
   goalSavingsUnit?: string | null;
+  /** @nullable */
+  archivedAt?: string | null;
   createdAt: string;
   memberCount?: number;
   taskCount?: number;
@@ -1144,6 +1148,10 @@ export type ListProjectsParams = {
 status?: string;
 businessUnit?: string;
 search?: string;
+/**
+ * Return archived projects when true; active projects by default
+ */
+archived?: boolean;
 };
 
 export type ListTasksParams = {

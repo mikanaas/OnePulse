@@ -1,24 +1,86 @@
 import { useState } from "react";
-import { Link, useLocation } from "wouter";
-import { useListProjects } from "@workspace/api-client-react";
+import { useLocation } from "wouter";
+import {
+  getListProjectsQueryKey,
+  useArchiveProject,
+  useListProjects,
+  useRestoreProject,
+} from "@workspace/api-client-react";
 import { AppLayout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, Loader2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Archive, ArchiveRestore, FolderOpen, Loader2, Plus, Search } from "lucide-react";
 import { formatCurrency, statusMap } from "@/lib/format";
+import { useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ProjectsPage() {
   const [, setLocation] = useLocation();
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<string>("all");
+  const [showArchived, setShowArchived] = useState(false);
+  const [actionTarget, setActionTarget] = useState<{
+    id: number;
+    name: string;
+    action: "archive" | "restore";
+  } | null>(null);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const { data: projects, isLoading } = useListProjects({
     search: search || undefined,
     status: status !== "all" ? status : undefined,
+    archived: showArchived,
   });
+  const archiveProject = useArchiveProject();
+  const restoreProject = useRestoreProject();
+  const actionPending = archiveProject.isPending || restoreProject.isPending;
+
+  const finishAction = (title: string) => {
+    queryClient.invalidateQueries({ queryKey: getListProjectsQueryKey() });
+    setActionTarget(null);
+    toast({ title });
+  };
+
+  const handleAction = () => {
+    if (!actionTarget) return;
+
+    if (actionTarget.action === "archive") {
+      archiveProject.mutate(
+        { id: actionTarget.id },
+        {
+          onSuccess: () => finishAction("Prosjekt arkivert"),
+          onError: () => {
+            toast({ title: "Kunne ikke arkivere prosjektet", variant: "destructive" });
+          },
+        },
+      );
+      return;
+    }
+
+    restoreProject.mutate(
+      { id: actionTarget.id },
+      {
+        onSuccess: () => finishAction("Prosjekt gjenopprettet"),
+        onError: () => {
+          toast({ title: "Kunne ikke gjenopprette prosjektet", variant: "destructive" });
+        },
+      },
+    );
+  };
 
   return (
     <AppLayout>
@@ -26,11 +88,31 @@ export default function ProjectsPage() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Prosjekter</h1>
-            <p className="text-muted-foreground">Oversikt over alle digitaliserings- og AI-prosjekter.</p>
+            <p className="text-muted-foreground">
+              {showArchived
+                ? "Arkiverte prosjekter som kan gjenopprettes."
+                : "Oversikt over alle digitaliserings- og AI-prosjekter."}
+            </p>
           </div>
-          <Button onClick={() => setLocation("/projects/new")}>
-            <Plus className="mr-2 h-4 w-4" /> Nytt prosjekt
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant={showArchived ? "outline" : "secondary"}
+              onClick={() => setShowArchived(false)}
+            >
+              <FolderOpen className="mr-2 h-4 w-4" /> Aktive
+            </Button>
+            <Button
+              variant={showArchived ? "secondary" : "outline"}
+              onClick={() => setShowArchived(true)}
+            >
+              <Archive className="mr-2 h-4 w-4" /> Arkiv
+            </Button>
+            {!showArchived && (
+              <Button onClick={() => setLocation("/projects/new")}>
+                <Plus className="mr-2 h-4 w-4" /> Nytt prosjekt
+              </Button>
+            )}
+          </div>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 items-center">
@@ -64,20 +146,21 @@ export default function ProjectsPage() {
                 <TableHead>Status</TableHead>
                 <TableHead className="max-w-[160px]">Forretningsområde</TableHead>
                 <TableHead className="text-right">Målbesparelse</TableHead>
-                <TableHead className="text-right">Oppgaver</TableHead>
+                <TableHead className="text-right">{showArchived ? "Arkivert" : "Oppgaver"}</TableHead>
+                <TableHead className="w-[88px] text-right">Handling</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                     <Loader2 className="h-6 w-6 animate-spin mx-auto" />
                   </TableCell>
                 </TableRow>
               ) : projects?.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                    Ingen prosjekter funnet.
+                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    {showArchived ? "Ingen arkiverte prosjekter." : "Ingen prosjekter funnet."}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -100,7 +183,34 @@ export default function ProjectsPage() {
                         : "-"}
                     </TableCell>
                     <TableCell className="text-right">
-                      {project.completedTaskCount || 0} / {project.taskCount || 0}
+                      {showArchived
+                        ? (project.archivedAt
+                            ? new Date(project.archivedAt).toLocaleDateString("nb-NO")
+                            : "-")
+                        : `${project.completedTaskCount || 0} / ${project.taskCount || 0}`}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className={showArchived
+                          ? "text-muted-foreground hover:bg-green-50 hover:text-green-700"
+                          : "text-muted-foreground hover:bg-amber-50 hover:text-amber-700"}
+                        title={showArchived ? `Gjenopprett ${project.name}` : `Arkiver ${project.name}`}
+                        aria-label={showArchived ? `Gjenopprett ${project.name}` : `Arkiver ${project.name}`}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setActionTarget({
+                            id: project.id,
+                            name: project.name,
+                            action: showArchived ? "restore" : "archive",
+                          });
+                        }}
+                      >
+                        {showArchived
+                          ? <ArchiveRestore className="h-4 w-4" />
+                          : <Archive className="h-4 w-4" />}
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))
@@ -109,6 +219,42 @@ export default function ProjectsPage() {
           </Table>
         </div>
       </div>
+      <AlertDialog
+        open={!!actionTarget}
+        onOpenChange={(open) => !open && !actionPending && setActionTarget(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {actionTarget
+                ? (actionTarget.action === "restore" ? "Gjenopprett prosjekt?" : "Arkiver prosjekt?")
+                : null}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {actionTarget
+                ? (actionTarget.action === "restore"
+                    ? `«${actionTarget.name}» flyttes tilbake til den aktive prosjektlisten med alle registrerte data.`
+                    : `«${actionTarget.name}» flyttes til arkivet. Oppgaver, effekter, kostnader og annen prosjektinformasjon beholdes, og prosjektet kan gjenopprettes senere.`)
+                : null}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={actionPending}>Avbryt</AlertDialogCancel>
+            <AlertDialogAction
+              className={actionTarget?.action === "restore" ? "" : "bg-amber-600 hover:bg-amber-700"}
+              disabled={actionPending}
+              onClick={(event) => {
+                event.preventDefault();
+                handleAction();
+              }}
+            >
+              {actionPending
+                ? (actionTarget?.action === "restore" ? "Gjenoppretter..." : "Arkiverer...")
+                : (actionTarget?.action === "restore" ? "Gjenopprett prosjekt" : "Arkiver prosjekt")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppLayout>
   );
 }

@@ -2,14 +2,21 @@ import { Router } from "express";
 import { db } from "../lib/db";
 import { requireAuth } from "../lib/requireAuth";
 import { projectsTable, projectMembersTable, usersTable, tasksTable, effectEntriesTable, costEntriesTable } from "@workspace/db";
-import { eq, and, or, ilike, sql } from "drizzle-orm";
+import { eq, and, or, ilike, sql, isNull, isNotNull } from "drizzle-orm";
 
 const router = Router();
 
 // GET /api/projects
 router.get("/projects", requireAuth, async (req, res) => {
-  const { status, businessUnit, search } = req.query as { status?: string; businessUnit?: string; search?: string };
-  const conditions: any[] = [];
+  const { status, businessUnit, search, archived } = req.query as {
+    status?: string;
+    businessUnit?: string;
+    search?: string;
+    archived?: string;
+  };
+  const conditions: any[] = [
+    archived === "true" ? isNotNull(projectsTable.archivedAt) : isNull(projectsTable.archivedAt),
+  ];
   if (status) conditions.push(eq(projectsTable.status, status));
   if (businessUnit) conditions.push(eq(projectsTable.businessUnit, businessUnit));
   if (search) conditions.push(or(
@@ -129,11 +136,28 @@ router.patch("/projects/:id", requireAuth, async (req, res) => {
   res.json(project);
 });
 
-// DELETE /api/projects/:id
+// DELETE /api/projects/:id — archive without deleting related data
 router.delete("/projects/:id", requireAuth, async (req, res) => {
   const id = Number(req.params.id);
-  await db.delete(projectsTable).where(eq(projectsTable.id, id));
+  const [project] = await db
+    .update(projectsTable)
+    .set({ archivedAt: new Date() })
+    .where(and(eq(projectsTable.id, id), isNull(projectsTable.archivedAt)))
+    .returning();
+  if (!project) { res.status(404).json({ error: "Not found" }); return; }
   res.status(204).end();
+});
+
+// POST /api/projects/:id — restore an archived project
+router.post("/projects/:id", requireAuth, async (req, res) => {
+  const id = Number(req.params.id);
+  const [project] = await db
+    .update(projectsTable)
+    .set({ archivedAt: null })
+    .where(and(eq(projectsTable.id, id), isNotNull(projectsTable.archivedAt)))
+    .returning();
+  if (!project) { res.status(404).json({ error: "Not found" }); return; }
+  res.json(project);
 });
 
 // GET /api/projects/:id/members
