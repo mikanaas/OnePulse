@@ -44,6 +44,8 @@ import type {
   ListProjectsParams,
   ListProposalsParams,
   ListTasksParams,
+  OutlookProposalImportResult,
+  OutlookProposalInput,
   ParseEffectInput,
   ParsedEffect,
   PortfolioAnalysis,
@@ -4606,6 +4608,77 @@ export const useCreateProposal = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getCreateProposalMutationOptions(options));
+    }
+
+export const getImportOutlookProposalUrl = () => {
+
+
+
+
+  return `/api/proposals/outlook`
+}
+
+/**
+ * @summary Import an Outlook email as an improvement proposal
+ */
+export const importOutlookProposal = async (outlookProposalInput: OutlookProposalInput, options?: RequestInit): Promise<OutlookProposalImportResult> => {
+
+  return customFetch<OutlookProposalImportResult>(getImportOutlookProposalUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      outlookProposalInput,)
+  }
+);}
+
+
+
+
+export const getImportOutlookProposalMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof importOutlookProposal>>, TError,{data: BodyType<OutlookProposalInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof importOutlookProposal>>, TError,{data: BodyType<OutlookProposalInput>}, TContext> => {
+
+const mutationKey = ['importOutlookProposal'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof importOutlookProposal>>, {data: BodyType<OutlookProposalInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  importOutlookProposal(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ImportOutlookProposalMutationResult = NonNullable<Awaited<ReturnType<typeof importOutlookProposal>>>
+    export type ImportOutlookProposalMutationBody = BodyType<OutlookProposalInput>
+    export type ImportOutlookProposalMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Import an Outlook email as an improvement proposal
+ */
+export const useImportOutlookProposal = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof importOutlookProposal>>, TError,{data: BodyType<OutlookProposalInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof importOutlookProposal>>,
+        TError,
+        {data: BodyType<OutlookProposalInput>},
+        TContext
+      > => {
+      return useMutation(getImportOutlookProposalMutationOptions(options));
     }
 
 export const getUpdateProposalUrl = (id: number,) => {

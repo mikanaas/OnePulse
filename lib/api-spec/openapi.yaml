@@ -1294,6 +1294,31 @@ paths:
               schema:
                 $ref: "#/components/schemas/Proposal"
 
+  /proposals/outlook:
+    post:
+      operationId: importOutlookProposal
+      tags: [proposals]
+      summary: Import an Outlook email as an improvement proposal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OutlookProposalInput"
+      responses:
+        "200":
+          description: Existing proposal returned for a duplicate message
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OutlookProposalImportResult"
+        "201":
+          description: Proposal imported
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OutlookProposalImportResult"
+
   /proposals/{id}:
     patch:
       operationId: updateProposal
@@ -2450,6 +2475,13 @@ components:
           type: ["integer", "null"]
         submittedByName:
           type: ["string", "null"]
+        source:
+          type: string
+          enum: [manual, outlook]
+        sourceMessageId:
+          type: ["string", "null"]
+        sourceSender:
+          type: ["string", "null"]
         convertedToProjectId:
           type: ["integer", "null"]
         createdAt:
@@ -2478,6 +2510,33 @@ components:
         complexity:
           type: string
           enum: [krevende, enkel]
+
+    OutlookProposalInput:
+      type: object
+      required: [messageId, subject, body]
+      properties:
+        messageId:
+          type: string
+          minLength: 1
+        subject:
+          type: string
+          minLength: 1
+        body:
+          type: string
+          minLength: 1
+        senderName:
+          type: string
+        senderEmail:
+          type: string
+
+    OutlookProposalImportResult:
+      type: object
+      required: [proposal, created]
+      properties:
+        proposal:
+          $ref: "#/components/schemas/Proposal"
+        created:
+          type: boolean
 
     ProposalUpdate:
       type: object

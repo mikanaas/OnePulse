@@ -22,6 +22,7 @@ import PortfolioReportPage from "@/pages/portfolio-report";
 import AiAnalysisPage from "@/pages/ai-analysis";
 import ProjectOverviewPage from "@/pages/project-overview";
 import ProposalsPage from "@/pages/proposals";
+import OutlookAddinPage from "@/pages/outlook-addin";
 import { ChatPanel } from "@/components/chat-panel";
 
 const clerkPubKey = publishableKeyFromHost(
@@ -156,6 +157,25 @@ function AdminRoute({ component: Component }: { component: React.ComponentType }
   return <ProtectedRoute component={Component} />;
 }
 
+function OutlookAddinRoute() {
+  return (
+    <>
+      <Show when="signed-in">
+        <OutlookAddinPage />
+      </Show>
+      <Show when="signed-out">
+        <div className="flex min-h-[100dvh] items-center justify-center bg-background p-4">
+          <SignIn
+            routing="path"
+            path={`${basePath}/outlook-addin`}
+            forceRedirectUrl={`${basePath}/outlook-addin`}
+          />
+        </div>
+      </Show>
+    </>
+  );
+}
+
 function ClerkProviderWithRoutes() {
   const [, setLocation] = useLocation();
 
@@ -191,6 +211,7 @@ function ClerkProviderWithRoutes() {
           <Route path="/" component={HomeRedirect} />
           <Route path="/sign-in/*?" component={SignInPage} />
           <Route path="/sign-up/*?" component={SignUpPage} />
+          <Route path="/outlook-addin/*?" component={OutlookAddinRoute} />
           
           <Route path="/portfolio" component={() => <ProtectedRoute component={PortfolioPage} />} />
           <Route path="/projects/new" component={() => <ProtectedRoute component={ProjectNew} />} />

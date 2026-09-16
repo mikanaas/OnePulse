@@ -1269,6 +1269,9 @@ export const ListProposalsResponseItem = zod.object({
   "status": zod.enum(['ny', 'vurdert', 'konvertert']),
   "submittedBy": zod.number().nullish(),
   "submittedByName": zod.string().nullish(),
+  "source": zod.enum(['manual', 'outlook']).optional(),
+  "sourceMessageId": zod.string().nullish(),
+  "sourceSender": zod.string().nullish(),
   "convertedToProjectId": zod.number().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string().optional()
@@ -1290,6 +1293,45 @@ export const CreateProposalBody = zod.object({
   "solutionDescription": zod.string().optional(),
   "effect": zod.enum(['stor', 'liten']),
   "complexity": zod.enum(['krevende', 'enkel'])
+})
+
+
+/**
+ * @summary Import an Outlook email as an improvement proposal
+ */
+
+
+
+
+
+export const ImportOutlookProposalBody = zod.object({
+  "messageId": zod.string().min(1),
+  "subject": zod.string().min(1),
+  "body": zod.string().min(1),
+  "senderName": zod.string().optional(),
+  "senderEmail": zod.string().optional()
+})
+
+export const ImportOutlookProposalResponse = zod.object({
+  "proposal": zod.object({
+  "id": zod.number(),
+  "title": zod.string(),
+  "description": zod.string(),
+  "type": zod.enum(['problem', 'solution']),
+  "solutionDescription": zod.string().nullish(),
+  "effect": zod.enum(['stor', 'liten']),
+  "complexity": zod.enum(['krevende', 'enkel']),
+  "status": zod.enum(['ny', 'vurdert', 'konvertert']),
+  "submittedBy": zod.number().nullish(),
+  "submittedByName": zod.string().nullish(),
+  "source": zod.enum(['manual', 'outlook']).optional(),
+  "sourceMessageId": zod.string().nullish(),
+  "sourceSender": zod.string().nullish(),
+  "convertedToProjectId": zod.number().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string().optional()
+}),
+  "created": zod.boolean()
 })
 
 
@@ -1323,6 +1365,9 @@ export const UpdateProposalResponse = zod.object({
   "status": zod.enum(['ny', 'vurdert', 'konvertert']),
   "submittedBy": zod.number().nullish(),
   "submittedByName": zod.string().nullish(),
+  "source": zod.enum(['manual', 'outlook']).optional(),
+  "sourceMessageId": zod.string().nullish(),
+  "sourceSender": zod.string().nullish(),
   "convertedToProjectId": zod.number().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string().optional()

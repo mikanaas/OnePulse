@@ -6,6 +6,86 @@ import { eq, and, inArray } from "drizzle-orm";
 
 const router = Router();
 
+function proposalWithSubmitter(proposal: typeof proposalsTable.$inferSelect, submittedByName: string | null) {
+  return { ...proposal, submittedByName };
+}
+
+// GET /api/outlook/manifest.xml
+router.get("/outlook/manifest.xml", (req, res) => {
+  const forwardedProto = req.get("x-forwarded-proto")?.split(",")[0]?.trim();
+  const forwardedHost = req.get("x-forwarded-host")?.split(",")[0]?.trim();
+  const origin = `${forwardedProto ?? req.protocol}://${forwardedHost ?? req.get("host")}`;
+  const sourceLocation = `${origin}/outlook-addin`;
+  const iconLocation = `${origin}/opengraph.jpg`;
+  const manifest = `<?xml version="1.0" encoding="UTF-8"?>
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
+  xmlns:mailappor="http://schemas.microsoft.com/office/mailappversionoverrides/1.0"
+  xsi:type="MailApp">
+  <Id>43d24a28-69ae-44a7-9a24-b9cc353eff31</Id>
+  <Version>1.0.0.0</Version>
+  <ProviderName>OnePulse</ProviderName>
+  <DefaultLocale>nb-NO</DefaultLocale>
+  <DisplayName DefaultValue="OnePulse forbedringsforslag"/>
+  <Description DefaultValue="Send den valgte e-posten direkte til forbedringsforslag i OnePulse."/>
+  <IconUrl DefaultValue="${iconLocation}"/>
+  <HighResolutionIconUrl DefaultValue="${iconLocation}"/>
+  <SupportUrl DefaultValue="${origin}"/>
+  <AppDomains><AppDomain>${origin}</AppDomain></AppDomains>
+  <Hosts><Host Name="Mailbox"/></Hosts>
+  <Requirements><Sets><Set Name="Mailbox" MinVersion="1.3"/></Sets></Requirements>
+  <FormSettings>
+    <Form xsi:type="ItemRead">
+      <DesktopSettings><SourceLocation DefaultValue="${sourceLocation}"/><RequestedHeight>300</RequestedHeight></DesktopSettings>
+    </Form>
+  </FormSettings>
+  <Permissions>ReadItem</Permissions>
+  <Rule xsi:type="RuleCollection" Mode="Or"><Rule xsi:type="ItemIs" ItemType="Message" FormType="Read"/></Rule>
+  <DisableEntityHighlighting>false</DisableEntityHighlighting>
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/mailappversionoverrides" xsi:type="VersionOverridesV1_0">
+    <Requirements><bt:Sets DefaultMinVersion="1.3"><bt:Set Name="Mailbox"/></bt:Sets></Requirements>
+    <Hosts>
+      <Host xsi:type="MailHost">
+        <DesktopFormFactor>
+          <ExtensionPoint xsi:type="MessageReadCommandSurface">
+            <OfficeTab id="TabDefault">
+              <Group id="OnePulse.Group">
+                <Label resid="Group.Label"/>
+                <Control xsi:type="Button" id="OnePulse.SendProposal">
+                  <Label resid="Button.Label"/>
+                  <Supertip><Title resid="Button.Label"/><Description resid="Button.Description"/></Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.16"/>
+                    <bt:Image size="32" resid="Icon.32"/>
+                    <bt:Image size="80" resid="Icon.80"/>
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane"><SourceLocation resid="Taskpane.Url"/></Action>
+                </Control>
+              </Group>
+            </OfficeTab>
+          </ExtensionPoint>
+        </DesktopFormFactor>
+      </Host>
+    </Hosts>
+    <Resources>
+      <bt:Images>
+        <bt:Image id="Icon.16" DefaultValue="${iconLocation}"/>
+        <bt:Image id="Icon.32" DefaultValue="${iconLocation}"/>
+        <bt:Image id="Icon.80" DefaultValue="${iconLocation}"/>
+      </bt:Images>
+      <bt:Urls><bt:Url id="Taskpane.Url" DefaultValue="${sourceLocation}"/></bt:Urls>
+      <bt:ShortStrings>
+        <bt:String id="Group.Label" DefaultValue="OnePulse"/>
+        <bt:String id="Button.Label" DefaultValue="Send til OnePulse"/>
+      </bt:ShortStrings>
+      <bt:LongStrings><bt:String id="Button.Description" DefaultValue="Opprett et forbedringsforslag fra denne e-posten."/></bt:LongStrings>
+    </Resources>
+  </VersionOverrides>
+</OfficeApp>`;
+  res.type("application/xml").send(manifest);
+});
+
 // GET /api/proposals
 router.get("/proposals", requireAuth, async (req, res) => {
   const { status, effect, complexity } = req.query as Record<string, string | undefined>;
@@ -49,6 +129,55 @@ router.post("/proposals", requireAuth, async (req, res) => {
     .then((r) => r[0]);
 
   res.status(201).json({ ...row.proposal, submittedByName: row.submittedByName });
+});
+
+// POST /api/proposals/outlook
+router.post("/proposals/outlook", requireAuth, async (req, res) => {
+  const user = (req as any).dbUser;
+  const { messageId, subject, body, senderName, senderEmail } = req.body as {
+    messageId: string;
+    subject: string;
+    body: string;
+    senderName?: string;
+    senderEmail?: string;
+  };
+
+  const [duplicate] = await db
+    .select()
+    .from(proposalsTable)
+    .where(and(
+      eq(proposalsTable.submittedBy, user.id),
+      eq(proposalsTable.sourceMessageId, messageId),
+    ))
+    .limit(1);
+
+  if (duplicate) {
+    const [submitter] = duplicate.submittedBy
+      ? await db.select({ name: usersTable.name }).from(usersTable).where(eq(usersTable.id, duplicate.submittedBy)).limit(1)
+      : [];
+    res.json({ proposal: proposalWithSubmitter(duplicate, submitter?.name ?? null), created: false });
+    return;
+  }
+
+  const sender = [senderName, senderEmail && `<${senderEmail}>`].filter(Boolean).join(" ");
+  const description = sender ? `Fra: ${sender}\n\n${body}` : body;
+  const [proposal] = await db.insert(proposalsTable).values({
+    title: subject,
+    description,
+    type: "problem",
+    effect: "liten",
+    complexity: "krevende",
+    status: "ny",
+    submittedBy: user.id,
+    source: "outlook",
+    sourceMessageId: messageId,
+    sourceSender: senderEmail ?? senderName ?? null,
+  }).returning();
+
+  res.status(201).json({
+    proposal: proposalWithSubmitter(proposal, user.name),
+    created: true,
+  });
 });
 
 // PATCH /api/proposals/:id

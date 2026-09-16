@@ -336,7 +336,9 @@ export default function ProposalsPage() {
   const [form, setForm] = useState<SubmitFormState>(defaultForm);
   const [saving, setSaving] = useState(false);
 
-  const { data: proposals = [], isLoading } = useListProposals(undefined, { query: { queryKey: QK } });
+  const { data: proposals = [], isLoading } = useListProposals(undefined, {
+    query: { queryKey: QK, refetchOnMount: "always", refetchOnWindowFocus: "always" },
+  });
 
   const createProposal = useCreateProposal();
   const updateProposal = useUpdateProposal();
@@ -552,6 +554,9 @@ export default function ProposalsPage() {
                           {q.label}
                         </span>
                         <span>{p.submittedByName ?? "Ukjent"}</span>
+                        {p.source === "outlook" && (
+                          <span className="rounded-full bg-blue-50 px-2 py-0.5 text-blue-700">Outlook</span>
+                        )}
                         <span>{new Date(p.createdAt).toLocaleDateString("nb-NO")}</span>
                         {p.status === "ny" && (
                           <button

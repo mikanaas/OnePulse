@@ -1044,6 +1044,14 @@ export const ProposalStatus = {
   konvertert: 'konvertert',
 } as const;
 
+export type ProposalSource = typeof ProposalSource[keyof typeof ProposalSource];
+
+
+export const ProposalSource = {
+  manual: 'manual',
+  outlook: 'outlook',
+} as const;
+
 export interface Proposal {
   id: number;
   title: string;
@@ -1058,6 +1066,11 @@ export interface Proposal {
   submittedBy?: number | null;
   /** @nullable */
   submittedByName?: string | null;
+  source?: ProposalSource;
+  /** @nullable */
+  sourceMessageId?: string | null;
+  /** @nullable */
+  sourceSender?: string | null;
   /** @nullable */
   convertedToProjectId?: number | null;
   createdAt: string;
@@ -1097,6 +1110,22 @@ export interface ProposalInput {
   solutionDescription?: string;
   effect: ProposalInputEffect;
   complexity: ProposalInputComplexity;
+}
+
+export interface OutlookProposalInput {
+  /** @minLength 1 */
+  messageId: string;
+  /** @minLength 1 */
+  subject: string;
+  /** @minLength 1 */
+  body: string;
+  senderName?: string;
+  senderEmail?: string;
+}
+
+export interface OutlookProposalImportResult {
+  proposal: Proposal;
+  created: boolean;
 }
 
 export type ProposalUpdateEffect = typeof ProposalUpdateEffect[keyof typeof ProposalUpdateEffect];
