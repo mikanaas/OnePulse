@@ -2,4 +2,4 @@
 - [React Query v5 queryKey required](rq5-querykey.md) — UseQueryOptions requires explicit queryKey field; cannot omit it even when enabled flag is present.
 - [Orval hook argument patterns](orval-hook-args.md) — hooks take positional numeric IDs, not object params; mutations require all path params explicitly.
 - [CRUD parity for user records](crud-parity.md) — user-created standalone list/log records should include edit and confirmed delete actions.
-- [Outlook proposal import](outlook-proposal-import.md) — Outlook button imports the open email directly, without a preview form; production rollout requires M365 admin deployment.
+- [Outlook proposal submission](outlook-proposal-import.md) — ribbon button opens the OnePulse proposal form and uses silent Microsoft 365 identity; no OnePulse login.

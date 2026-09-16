@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, type Request } from "express";
 import { db } from "../lib/db";
 import { requireAuth } from "../lib/requireAuth";
 import { proposalsTable, projectsTable, usersTable } from "@workspace/db";
@@ -8,6 +8,38 @@ const router = Router();
 
 function proposalWithSubmitter(proposal: typeof proposalsTable.$inferSelect, submittedByName: string | null) {
   return { ...proposal, submittedByName };
+}
+
+type MicrosoftProfile = {
+  id: string;
+  displayName?: string;
+  mail?: string;
+  userPrincipalName?: string;
+};
+
+function jwtTenantId(token: string): string | undefined {
+  try {
+    const payload = token.split(".")[1];
+    if (!payload) return undefined;
+    return JSON.parse(Buffer.from(payload, "base64url").toString("utf8")).tid;
+  } catch {
+    return undefined;
+  }
+}
+
+async function verifyMicrosoftProfile(req: Request): Promise<MicrosoftProfile | null> {
+  const tenantId = process.env.MICROSOFT_ENTRA_TENANT_ID;
+  if (!tenantId) return null;
+
+  const authorization = req.get("authorization");
+  const token = authorization?.startsWith("Bearer ") ? authorization.slice(7) : null;
+  if (!token || jwtTenantId(token) !== tenantId) return null;
+
+  const response = await fetch("https://graph.microsoft.com/v1.0/me?$select=id,displayName,mail,userPrincipalName", {
+    headers: { authorization: `Bearer ${token}` },
+  });
+  if (!response.ok) return null;
+  return await response.json() as MicrosoftProfile;
 }
 
 // GET /api/outlook/manifest.xml
@@ -28,7 +60,7 @@ router.get("/outlook/manifest.xml", (req, res) => {
   <ProviderName>OnePulse</ProviderName>
   <DefaultLocale>nb-NO</DefaultLocale>
   <DisplayName DefaultValue="OnePulse forbedringsforslag"/>
-  <Description DefaultValue="Send den valgte e-posten direkte til forbedringsforslag i OnePulse."/>
+  <Description DefaultValue="Registrer forbedringsforslag direkte fra Outlook."/>
   <IconUrl DefaultValue="${iconLocation}"/>
   <HighResolutionIconUrl DefaultValue="${iconLocation}"/>
   <SupportUrl DefaultValue="${origin}"/>
@@ -40,7 +72,7 @@ router.get("/outlook/manifest.xml", (req, res) => {
       <DesktopSettings><SourceLocation DefaultValue="${sourceLocation}"/><RequestedHeight>300</RequestedHeight></DesktopSettings>
     </Form>
   </FormSettings>
-  <Permissions>ReadItem</Permissions>
+  <Permissions>Restricted</Permissions>
   <Rule xsi:type="RuleCollection" Mode="Or"><Rule xsi:type="ItemIs" ItemType="Message" FormType="Read"/></Rule>
   <DisableEntityHighlighting>false</DisableEntityHighlighting>
   <VersionOverrides xmlns="http://schemas.microsoft.com/office/mailappversionoverrides" xsi:type="VersionOverridesV1_0">
@@ -77,13 +109,24 @@ router.get("/outlook/manifest.xml", (req, res) => {
       <bt:Urls><bt:Url id="Taskpane.Url" DefaultValue="${sourceLocation}"/></bt:Urls>
       <bt:ShortStrings>
         <bt:String id="Group.Label" DefaultValue="OnePulse"/>
-        <bt:String id="Button.Label" DefaultValue="Send til OnePulse"/>
+        <bt:String id="Button.Label" DefaultValue="Nytt forslag"/>
       </bt:ShortStrings>
-      <bt:LongStrings><bt:String id="Button.Description" DefaultValue="Opprett et forbedringsforslag fra denne e-posten."/></bt:LongStrings>
+      <bt:LongStrings><bt:String id="Button.Description" DefaultValue="Registrer et nytt forbedringsforslag i OnePulse."/></bt:LongStrings>
     </Resources>
   </VersionOverrides>
 </OfficeApp>`;
   res.type("application/xml").send(manifest);
+});
+
+// GET /api/outlook/config
+router.get("/outlook/config", (_req, res) => {
+  const clientId = process.env.MICROSOFT_ENTRA_CLIENT_ID;
+  const tenantId = process.env.MICROSOFT_ENTRA_TENANT_ID;
+  if (!clientId || !tenantId) {
+    res.status(503).json({ error: "Microsoft 365 integration is not configured" });
+    return;
+  }
+  res.json({ clientId, tenantId });
 });
 
 // GET /api/proposals
@@ -95,7 +138,10 @@ router.get("/proposals", requireAuth, async (req, res) => {
     .from(proposalsTable)
     .leftJoin(usersTable, eq(proposalsTable.submittedBy, usersTable.id));
 
-  let results = rows.map(({ proposal, submittedByName }) => ({ ...proposal, submittedByName }));
+  let results = rows.map(({ proposal, submittedByName }) => ({
+    ...proposal,
+    submittedByName: submittedByName ?? (proposal.source === "outlook" ? proposal.sourceSender : null),
+  }));
 
   if (status) results = results.filter((r) => r.status === status);
   if (effect) results = results.filter((r) => r.effect === effect);
@@ -132,50 +178,61 @@ router.post("/proposals", requireAuth, async (req, res) => {
 });
 
 // POST /api/proposals/outlook
-router.post("/proposals/outlook", requireAuth, async (req, res) => {
-  const user = (req as any).dbUser;
-  const { messageId, subject, body, senderName, senderEmail } = req.body as {
-    messageId: string;
-    subject: string;
-    body: string;
-    senderName?: string;
-    senderEmail?: string;
+router.post("/proposals/outlook", async (req, res) => {
+  if (!process.env.MICROSOFT_ENTRA_TENANT_ID) {
+    res.status(503).json({ error: "Microsoft 365 integration is not configured" });
+    return;
+  }
+
+  const profile = await verifyMicrosoftProfile(req);
+  if (!profile) {
+    res.status(401).json({ error: "Invalid Microsoft 365 identity" });
+    return;
+  }
+
+  const { submissionId, title, description, type, solutionDescription, effect, complexity } = req.body as {
+    submissionId: string;
+    title: string;
+    description: string;
+    type: "problem" | "solution";
+    solutionDescription?: string;
+    effect: "stor" | "liten";
+    complexity: "krevende" | "enkel";
   };
+  if (!submissionId?.trim() || !title?.trim() || !description?.trim()) {
+    res.status(400).json({ error: "Missing required proposal fields" });
+    return;
+  }
 
   const [duplicate] = await db
     .select()
     .from(proposalsTable)
-    .where(and(
-      eq(proposalsTable.submittedBy, user.id),
-      eq(proposalsTable.sourceMessageId, messageId),
-    ))
+    .where(eq(proposalsTable.sourceMessageId, submissionId))
     .limit(1);
 
   if (duplicate) {
-    const [submitter] = duplicate.submittedBy
-      ? await db.select({ name: usersTable.name }).from(usersTable).where(eq(usersTable.id, duplicate.submittedBy)).limit(1)
-      : [];
-    res.json({ proposal: proposalWithSubmitter(duplicate, submitter?.name ?? null), created: false });
+    res.json({ proposal: proposalWithSubmitter(duplicate, duplicate.sourceSender), created: false });
     return;
   }
 
-  const sender = [senderName, senderEmail && `<${senderEmail}>`].filter(Boolean).join(" ");
-  const description = sender ? `Fra: ${sender}\n\n${body}` : body;
+  const email = profile.mail ?? profile.userPrincipalName ?? "";
+  const sender = [profile.displayName, email && `<${email}>`].filter(Boolean).join(" ");
   const [proposal] = await db.insert(proposalsTable).values({
-    title: subject,
+    title: title.trim(),
     description,
-    type: "problem",
-    effect: "liten",
-    complexity: "krevende",
+    type,
+    solutionDescription: type === "solution" ? solutionDescription?.trim() || null : null,
+    effect,
+    complexity,
     status: "ny",
-    submittedBy: user.id,
+    submittedBy: null,
     source: "outlook",
-    sourceMessageId: messageId,
-    sourceSender: senderEmail ?? senderName ?? null,
+    sourceMessageId: submissionId,
+    sourceSender: sender || email || profile.id,
   }).returning();
 
   res.status(201).json({
-    proposal: proposalWithSubmitter(proposal, user.name),
+    proposal: proposalWithSubmitter(proposal, profile.displayName ?? email),
     created: true,
   });
 });

@@ -21,10 +21,7 @@ export const proposalsTable = pgTable("improvement_proposals", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 }, (table) => [
-  uniqueIndex("improvement_proposals_submitter_source_message_unique").on(
-    table.submittedBy,
-    table.sourceMessageId,
-  ),
+  uniqueIndex("improvement_proposals_source_message_id_unique").on(table.sourceMessageId),
 ]);
 
 export const insertProposalSchema = createInsertSchema(proposalsTable).omit({

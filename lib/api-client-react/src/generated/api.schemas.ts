@@ -1112,15 +1112,46 @@ export interface ProposalInput {
   complexity: ProposalInputComplexity;
 }
 
+export type OutlookProposalInputType = typeof OutlookProposalInputType[keyof typeof OutlookProposalInputType];
+
+
+export const OutlookProposalInputType = {
+  problem: 'problem',
+  solution: 'solution',
+} as const;
+
+export type OutlookProposalInputEffect = typeof OutlookProposalInputEffect[keyof typeof OutlookProposalInputEffect];
+
+
+export const OutlookProposalInputEffect = {
+  stor: 'stor',
+  liten: 'liten',
+} as const;
+
+export type OutlookProposalInputComplexity = typeof OutlookProposalInputComplexity[keyof typeof OutlookProposalInputComplexity];
+
+
+export const OutlookProposalInputComplexity = {
+  krevende: 'krevende',
+  enkel: 'enkel',
+} as const;
+
 export interface OutlookProposalInput {
   /** @minLength 1 */
-  messageId: string;
+  submissionId: string;
   /** @minLength 1 */
-  subject: string;
+  title: string;
   /** @minLength 1 */
-  body: string;
-  senderName?: string;
-  senderEmail?: string;
+  description: string;
+  type: OutlookProposalInputType;
+  solutionDescription?: string;
+  effect: OutlookProposalInputEffect;
+  complexity: OutlookProposalInputComplexity;
+}
+
+export interface OutlookConfig {
+  clientId: string;
+  tenantId: string;
 }
 
 export interface OutlookProposalImportResult {

@@ -1,10 +1,10 @@
 ---
-name: Outlook proposal import
-description: Confirmed product behavior and rollout constraint for creating proposals from Outlook emails.
+name: Outlook proposal submission
+description: Confirmed product behavior and rollout constraint for submitting proposals from Outlook.
 ---
 
-**Rule:** The Outlook action should create a new improvement proposal immediately from the open email, without showing a review or edit form first.
+**Rule:** The Outlook ribbon action opens the same proposal questions as OnePulse and submits without a separate OnePulse login. Use the active Microsoft 365 identity silently.
 
-**Why:** The user explicitly selected direct creation over a preview step to keep the workflow to one click.
+**Why:** The user corrected the initial direct-email-import concept: they want a Phish Alert-style ribbon button, a short form, and no OnePulse login prompt.
 
-**How to apply:** Preserve direct submission when changing the Outlook add-in. Keep duplicate protection, show only progress/result feedback, and remember that actual availability requires a stable published HTTPS URL plus Microsoft 365 administrator deployment.
+**How to apply:** Keep the form aligned with “Nytt forslag” in OnePulse. Use Microsoft NAA for silent identity and require a stable HTTPS URL, Entra app registration, and Microsoft 365 administrator deployment.

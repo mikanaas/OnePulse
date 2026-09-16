@@ -157,25 +157,6 @@ function AdminRoute({ component: Component }: { component: React.ComponentType }
   return <ProtectedRoute component={Component} />;
 }
 
-function OutlookAddinRoute() {
-  return (
-    <>
-      <Show when="signed-in">
-        <OutlookAddinPage />
-      </Show>
-      <Show when="signed-out">
-        <div className="flex min-h-[100dvh] items-center justify-center bg-background p-4">
-          <SignIn
-            routing="path"
-            path={`${basePath}/outlook-addin`}
-            forceRedirectUrl={`${basePath}/outlook-addin`}
-          />
-        </div>
-      </Show>
-    </>
-  );
-}
-
 function ClerkProviderWithRoutes() {
   const [, setLocation] = useLocation();
 
@@ -211,7 +192,7 @@ function ClerkProviderWithRoutes() {
           <Route path="/" component={HomeRedirect} />
           <Route path="/sign-in/*?" component={SignInPage} />
           <Route path="/sign-up/*?" component={SignUpPage} />
-          <Route path="/outlook-addin/*?" component={OutlookAddinRoute} />
+          <Route path="/outlook-addin" component={OutlookAddinPage} />
           
           <Route path="/portfolio" component={() => <ProtectedRoute component={PortfolioPage} />} />
           <Route path="/projects/new" component={() => <ProtectedRoute component={ProjectNew} />} />

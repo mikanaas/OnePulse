@@ -1319,6 +1319,19 @@ paths:
               schema:
                 $ref: "#/components/schemas/OutlookProposalImportResult"
 
+  /outlook/config:
+    get:
+      operationId: getOutlookConfig
+      tags: [proposals]
+      summary: Get public Microsoft 365 configuration for the Outlook add-in
+      responses:
+        "200":
+          description: Outlook add-in configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OutlookConfig"
+
   /proposals/{id}:
     patch:
       operationId: updateProposal
@@ -2513,20 +2526,36 @@ components:
 
     OutlookProposalInput:
       type: object
-      required: [messageId, subject, body]
+      required: [submissionId, title, description, type, effect, complexity]
       properties:
-        messageId:
+        submissionId:
           type: string
           minLength: 1
-        subject:
+        title:
           type: string
           minLength: 1
-        body:
+        description:
           type: string
           minLength: 1
-        senderName:
+        type:
           type: string
-        senderEmail:
+          enum: [problem, solution]
+        solutionDescription:
+          type: string
+        effect:
+          type: string
+          enum: [stor, liten]
+        complexity:
+          type: string
+          enum: [krevende, enkel]
+
+    OutlookConfig:
+      type: object
+      required: [clientId, tenantId]
+      properties:
+        clientId:
+          type: string
+        tenantId:
           type: string
 
     OutlookProposalImportResult:

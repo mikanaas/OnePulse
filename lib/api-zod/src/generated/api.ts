@@ -1305,11 +1305,13 @@ export const CreateProposalBody = zod.object({
 
 
 export const ImportOutlookProposalBody = zod.object({
-  "messageId": zod.string().min(1),
-  "subject": zod.string().min(1),
-  "body": zod.string().min(1),
-  "senderName": zod.string().optional(),
-  "senderEmail": zod.string().optional()
+  "submissionId": zod.string().min(1),
+  "title": zod.string().min(1),
+  "description": zod.string().min(1),
+  "type": zod.enum(['problem', 'solution']),
+  "solutionDescription": zod.string().optional(),
+  "effect": zod.enum(['stor', 'liten']),
+  "complexity": zod.enum(['krevende', 'enkel'])
 })
 
 export const ImportOutlookProposalResponse = zod.object({
@@ -1332,6 +1334,15 @@ export const ImportOutlookProposalResponse = zod.object({
   "updatedAt": zod.string().optional()
 }),
   "created": zod.boolean()
+})
+
+
+/**
+ * @summary Get public Microsoft 365 configuration for the Outlook add-in
+ */
+export const GetOutlookConfigResponse = zod.object({
+  "clientId": zod.string(),
+  "tenantId": zod.string()
 })
 
 

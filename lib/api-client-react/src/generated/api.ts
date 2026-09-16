@@ -44,6 +44,7 @@ import type {
   ListProjectsParams,
   ListProposalsParams,
   ListTasksParams,
+  OutlookConfig,
   OutlookProposalImportResult,
   OutlookProposalInput,
   ParseEffectInput,
@@ -4680,6 +4681,83 @@ export const useImportOutlookProposal = <TError = ErrorType<unknown>,
       > => {
       return useMutation(getImportOutlookProposalMutationOptions(options));
     }
+
+export const getGetOutlookConfigUrl = () => {
+
+
+
+
+  return `/api/outlook/config`
+}
+
+/**
+ * @summary Get public Microsoft 365 configuration for the Outlook add-in
+ */
+export const getOutlookConfig = async ( options?: RequestInit): Promise<OutlookConfig> => {
+
+  return customFetch<OutlookConfig>(getGetOutlookConfigUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOutlookConfigQueryKey = () => {
+    return [
+    `/api/outlook/config`
+    ] as const;
+    }
+
+
+export const getGetOutlookConfigQueryOptions = <TData = Awaited<ReturnType<typeof getOutlookConfig>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOutlookConfig>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOutlookConfigQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOutlookConfig>>> = ({ signal }) => getOutlookConfig({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOutlookConfig>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetOutlookConfigQueryResult = NonNullable<Awaited<ReturnType<typeof getOutlookConfig>>>
+export type GetOutlookConfigQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get public Microsoft 365 configuration for the Outlook add-in
+ */
+
+export function useGetOutlookConfig<TData = Awaited<ReturnType<typeof getOutlookConfig>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOutlookConfig>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetOutlookConfigQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 
 export const getUpdateProposalUrl = (id: number,) => {
 
