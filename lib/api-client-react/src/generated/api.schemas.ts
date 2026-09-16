@@ -472,6 +472,24 @@ export interface ActivityInput {
   content: string;
 }
 
+export type ActivityUpdateType = typeof ActivityUpdateType[keyof typeof ActivityUpdateType];
+
+
+export const ActivityUpdateType = {
+  kommentar: 'kommentar',
+  avtale: 'avtale',
+  beslutning: 'beslutning',
+  milepael: 'milepael',
+  system: 'system',
+  ai_oppsummering: 'ai_oppsummering',
+} as const;
+
+export interface ActivityUpdate {
+  type?: ActivityUpdateType;
+  /** @minLength 1 */
+  content?: string;
+}
+
 export type EffectEntryUnit = typeof EffectEntryUnit[keyof typeof EffectEntryUnit];
 
 

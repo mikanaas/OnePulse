@@ -34,4 +34,34 @@ router.post("/projects/:projectId/activity", requireAuth, async (req, res) => {
   res.status(201).json(entry);
 });
 
+// PATCH /api/projects/:projectId/activity/:id
+router.patch("/projects/:projectId/activity/:id", requireAuth, async (req, res) => {
+  const projectId = Number(req.params.projectId);
+  const id = Number(req.params.id);
+  const body = req.body as { type?: string; content?: string };
+  const updateData: { type?: string; content?: string } = {};
+  if (body.type !== undefined) updateData.type = body.type;
+  if (body.content !== undefined) updateData.content = body.content;
+
+  const [entry] = await db
+    .update(activityLogTable)
+    .set(updateData)
+    .where(and(eq(activityLogTable.id, id), eq(activityLogTable.projectId, projectId)))
+    .returning();
+  if (!entry) { res.status(404).json({ error: "Not found" }); return; }
+  res.json(entry);
+});
+
+// DELETE /api/projects/:projectId/activity/:id
+router.delete("/projects/:projectId/activity/:id", requireAuth, async (req, res) => {
+  const projectId = Number(req.params.projectId);
+  const id = Number(req.params.id);
+  const [entry] = await db
+    .delete(activityLogTable)
+    .where(and(eq(activityLogTable.id, id), eq(activityLogTable.projectId, projectId)))
+    .returning({ id: activityLogTable.id });
+  if (!entry) { res.status(404).json({ error: "Not found" }); return; }
+  res.status(204).end();
+});
+
 export default router;

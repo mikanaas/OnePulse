@@ -1,3 +1,4 @@
 - [Orval codegen barrel patch](orval-barrel-patch.md) — Orval regenerates api-zod/src/index.ts with stale types export; must printf-patch it post-codegen.
 - [React Query v5 queryKey required](rq5-querykey.md) — UseQueryOptions requires explicit queryKey field; cannot omit it even when enabled flag is present.
 - [Orval hook argument patterns](orval-hook-args.md) — hooks take positional numeric IDs, not object params; mutations require all path params explicitly.
+- [CRUD parity for user records](crud-parity.md) — user-created standalone list/log records should include edit and confirmed delete actions.

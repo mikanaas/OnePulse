@@ -575,6 +575,42 @@ export const CreateActivityBody = zod.object({
 
 
 /**
+ * @summary Update an activity entry
+ */
+export const UpdateActivityParams = zod.object({
+  "projectId": zod.coerce.number(),
+  "id": zod.coerce.number()
+})
+
+
+
+
+export const UpdateActivityBody = zod.object({
+  "type": zod.enum(['kommentar', 'avtale', 'beslutning', 'milepael', 'system', 'ai_oppsummering']).optional(),
+  "content": zod.string().min(1).optional()
+})
+
+export const UpdateActivityResponse = zod.object({
+  "id": zod.number(),
+  "projectId": zod.number(),
+  "userId": zod.number(),
+  "userName": zod.string().nullish(),
+  "type": zod.enum(['kommentar', 'avtale', 'beslutning', 'milepael', 'system', 'ai_oppsummering']),
+  "content": zod.string(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Delete an activity entry
+ */
+export const DeleteActivityParams = zod.object({
+  "projectId": zod.coerce.number(),
+  "id": zod.coerce.number()
+})
+
+
+/**
  * @summary List effect entries for a project
  */
 export const ListEffectsParams = zod.object({
