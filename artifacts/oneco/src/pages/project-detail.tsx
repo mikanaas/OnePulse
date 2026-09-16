@@ -42,6 +42,8 @@ export default function ProjectDetail() {
   const updateProject = useUpdateProject();
   const [isEditingName, setIsEditingName] = useState(false);
   const [projectName, setProjectName] = useState("");
+  const [isEditingDescription, setIsEditingDescription] = useState(false);
+  const [projectDescription, setProjectDescription] = useState("");
 
   const startEditingName = () => {
     if (!project) return;
@@ -71,6 +73,29 @@ export default function ProjectDetail() {
           toast({ title: "Prosjekttittel oppdatert" });
         },
         onError: () => toast({ title: "Kunne ikke endre prosjekttittel", variant: "destructive" }),
+      },
+    );
+  };
+
+  const startEditingDescription = () => {
+    if (!project) return;
+    setProjectDescription(project.description ?? "");
+    setIsEditingDescription(true);
+  };
+
+  const saveProjectDescription = () => {
+    if (!project) return;
+    const description = projectDescription.trim();
+    updateProject.mutate(
+      { id, data: { description } },
+      {
+        onSuccess: () => {
+          void queryClient.invalidateQueries({ queryKey: getGetProjectQueryKey(id) });
+          invalidateProjectOverviews(queryClient);
+          setIsEditingDescription(false);
+          toast({ title: "Prosjektbeskrivelse oppdatert" });
+        },
+        onError: () => toast({ title: "Kunne ikke endre prosjektbeskrivelse", variant: "destructive" }),
       },
     );
   };
@@ -197,7 +222,41 @@ export default function ProjectDetail() {
                 </SelectContent>
               </Select>
             </div>
-            <p className="text-muted-foreground max-w-2xl">{project.description}</p>
+            {isEditingDescription ? (
+              <div className="flex max-w-2xl items-start gap-2">
+                <Input
+                  value={projectDescription}
+                  onChange={(event) => setProjectDescription(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") saveProjectDescription();
+                    if (event.key === "Escape") setIsEditingDescription(false);
+                  }}
+                  aria-label="Prosjektbeskrivelse"
+                  autoFocus
+                  disabled={updateProject.isPending}
+                />
+                <Button type="button" size="icon" variant="ghost" onClick={saveProjectDescription} disabled={updateProject.isPending} aria-label="Lagre prosjektbeskrivelse">
+                  {updateProject.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                </Button>
+                <Button type="button" size="icon" variant="ghost" onClick={() => setIsEditingDescription(false)} disabled={updateProject.isPending} aria-label="Avbryt redigering">
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ) : (
+              <div className="group flex max-w-2xl items-start gap-1">
+                <p className="text-muted-foreground">{project.description || "Ingen prosjektbeskrivelse"}</p>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="h-7 w-7 shrink-0 text-muted-foreground opacity-70 md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100"
+                  onClick={startEditingDescription}
+                  aria-label="Endre prosjektbeskrivelse"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            )}
           </div>
           <Button variant="outline" size="sm" className="gap-2 shrink-0" onClick={() => setLocation(`/projects/${project.id}/rapport`)}>
             <FileText className="h-4 w-4" />

@@ -449,6 +449,7 @@ function ProjectGoalCard({ projectId }: { projectId: number }) {
   const updateProject = useUpdateProject();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const [description, setDescription] = useState("");
   const [goalText, setGoalText] = useState("");
   const [goalValue, setGoalValue] = useState("");
   const [goalUnit, setGoalUnit] = useState<"kr" | "timer">("kr");
@@ -456,6 +457,7 @@ function ProjectGoalCard({ projectId }: { projectId: number }) {
 
   useEffect(() => {
     if (!project) return;
+    setDescription(project.description ?? "");
     setGoalText(project.goalText ?? "");
     setGoalValue(project.goalSavingsValue == null ? "" : String(project.goalSavingsValue));
     setGoalUnit(project.goalSavingsUnit === "timer" ? "timer" : "kr");
@@ -467,6 +469,7 @@ function ProjectGoalCard({ projectId }: { projectId: number }) {
       {
         id: projectId,
         data: {
+          description: description.trim(),
           goalText: goalText.trim(),
           goalSavingsValue: goalValue === "" ? undefined : Number(goalValue),
           goalSavingsUnit: goalUnit,
@@ -477,9 +480,9 @@ function ProjectGoalCard({ projectId }: { projectId: number }) {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetProjectQueryKey(projectId) });
           invalidateProjectOverviews(queryClient);
-          toast({ title: "Prosjektmål lagret" });
+          toast({ title: "Prosjektbeskrivelse og mål lagret" });
         },
-        onError: () => toast({ title: "Kunne ikke lagre prosjektmål", variant: "destructive" }),
+        onError: () => toast({ title: "Kunne ikke lagre prosjektinformasjonen", variant: "destructive" }),
       },
     );
   };
@@ -489,10 +492,10 @@ function ProjectGoalCard({ projectId }: { projectId: number }) {
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
           <Target className="h-4 w-4 text-primary" />
-          Mål med prosjektet
+          Prosjektbeskrivelse og mål
         </CardTitle>
         <CardDescription>
-          Beskriv ønsket resultat utfyllende. Denne teksten vises i sin helhet her, mens oversikten beholder et kort sammendrag.
+          Oppdater prosjektets overordnede beskrivelse og ønskede resultat.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -502,6 +505,14 @@ function ProjectGoalCard({ projectId }: { projectId: number }) {
           </div>
         ) : (
           <>
+            <Field label="Prosjektbeskrivelse">
+              <Textarea
+                rows={4}
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
+                placeholder="Beskriv prosjektets formål og omfang..."
+              />
+            </Field>
             <Field label="Målbeskrivelse">
               <Textarea
                 rows={5}
@@ -536,7 +547,7 @@ function ProjectGoalCard({ projectId }: { projectId: number }) {
             <div className="flex justify-end">
               <Button type="button" onClick={saveGoal} disabled={updateProject.isPending}>
                 {updateProject.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                Lagre prosjektmål
+                Lagre beskrivelse og mål
               </Button>
             </div>
           </>
