@@ -7,8 +7,10 @@ import {
 } from "@workspace/api-client-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { statusMap } from "@/lib/format";
-import { Loader2, ArrowLeft, FileText } from "lucide-react";
+import { useState } from "react";
+import { Loader2, ArrowLeft, FileText, Pencil, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -38,6 +40,40 @@ export default function ProjectDetail() {
     query: { enabled: !!id, queryKey: getGetProjectQueryKey(id) }
   });
   const updateProject = useUpdateProject();
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [projectName, setProjectName] = useState("");
+
+  const startEditingName = () => {
+    if (!project) return;
+    setProjectName(project.name);
+    setIsEditingName(true);
+  };
+
+  const cancelEditingName = () => {
+    setIsEditingName(false);
+    setProjectName("");
+  };
+
+  const saveProjectName = () => {
+    const name = projectName.trim();
+    if (!project || !name || name === project.name) {
+      if (!name) toast({ title: "Prosjekttittelen kan ikke være tom", variant: "destructive" });
+      else cancelEditingName();
+      return;
+    }
+    updateProject.mutate(
+      { id, data: { name } },
+      {
+        onSuccess: () => {
+          void queryClient.invalidateQueries({ queryKey: getGetProjectQueryKey(id) });
+          invalidateProjectOverviews(queryClient);
+          setIsEditingName(false);
+          toast({ title: "Prosjekttittel oppdatert" });
+        },
+        onError: () => toast({ title: "Kunne ikke endre prosjekttittel", variant: "destructive" }),
+      },
+    );
+  };
 
   const changeStatus = (status: "ide" | "pagaende" | "pause" | "fullfort" | "i_drift" | "avsluttet") => {
     updateProject.mutate(
@@ -89,7 +125,58 @@ export default function ProjectDetail() {
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-3xl font-bold tracking-tight">{project.name}</h1>
+              {isEditingName ? (
+                <div className="flex min-w-0 items-center gap-2">
+                  <Input
+                    value={projectName}
+                    onChange={(event) => setProjectName(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") saveProjectName();
+                      if (event.key === "Escape") cancelEditingName();
+                    }}
+                    className="h-11 min-w-0 max-w-xl text-2xl font-bold"
+                    aria-label="Prosjekttittel"
+                    autoFocus
+                    disabled={updateProject.isPending}
+                  />
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    onClick={saveProjectName}
+                    disabled={updateProject.isPending || !projectName.trim()}
+                    aria-label="Lagre prosjekttittel"
+                  >
+                    {updateProject.isPending
+                      ? <Loader2 className="h-4 w-4 animate-spin" />
+                      : <Check className="h-4 w-4" />}
+                  </Button>
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    onClick={cancelEditingName}
+                    disabled={updateProject.isPending}
+                    aria-label="Avbryt redigering"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="group flex min-w-0 items-center gap-1">
+                  <h1 className="min-w-0 text-3xl font-bold tracking-tight">{project.name}</h1>
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    className="shrink-0 text-muted-foreground opacity-70 transition-opacity hover:text-foreground md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100"
+                    onClick={startEditingName}
+                    aria-label="Endre prosjekttittel"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
               <Select
                 value={project.status}
                 onValueChange={(value) => changeStatus(value as "ide" | "pagaende" | "pause" | "fullfort" | "i_drift" | "avsluttet")}
