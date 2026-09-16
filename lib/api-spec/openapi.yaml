@@ -1508,7 +1508,7 @@ components:
           type: ["string", "null"]
         status:
           type: string
-          enum: [ide, pagaende, pause, fullfort, avsluttet]
+          enum: [ide, pagaende, pause, fullfort, i_drift, avsluttet]
         ownerId:
           type: integer
         ownerName:
@@ -1558,7 +1558,7 @@ components:
           type: ["string", "null"]
         status:
           type: string
-          enum: [ide, pagaende, pause, fullfort, avsluttet]
+          enum: [ide, pagaende, pause, fullfort, i_drift, avsluttet]
         ownerId:
           type: integer
         ownerName:
@@ -1600,7 +1600,7 @@ components:
           type: string
         status:
           type: string
-          enum: [ide, pagaende, pause, fullfort, avsluttet]
+          enum: [ide, pagaende, pause, fullfort, i_drift, avsluttet]
         startDate:
           type: string
         plannedEndDate:
@@ -1631,7 +1631,7 @@ components:
           type: integer
         status:
           type: string
-          enum: [ide, pagaende, pause, fullfort, avsluttet]
+          enum: [ide, pagaende, pause, fullfort, i_drift, avsluttet]
         startDate:
           type: string
         plannedEndDate:

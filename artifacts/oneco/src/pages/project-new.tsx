@@ -16,7 +16,7 @@ const schema = z.object({
   name: z.string().min(1, "Navn er påkrevd"),
   description: z.string().optional(),
   businessUnit: z.string().optional(),
-  status: z.enum(["ide", "pagaende", "pause", "fullfort", "avsluttet"]).default("ide"),
+  status: z.enum(["ide", "pagaende", "pause", "fullfort", "i_drift", "avsluttet"]).default("ide"),
   goalSavingsValue: z.coerce.number().optional(),
   goalSavingsUnit: z.enum(["kr", "timer"]).default("kr"),
   estimatedHours: z.coerce.number().optional(),

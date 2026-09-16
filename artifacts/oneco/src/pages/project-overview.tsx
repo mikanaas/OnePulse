@@ -106,7 +106,7 @@ const COLS: { key: keyof HeatmapRow; label: string; icon: React.ElementType; des
 type SortKey = "score" | "name" | "unit";
 
 const STATUS_OPTIONS = [
-  { value: "ide,pagaende,pause,fullfort,avsluttet", label: "Alle statuser" },
+  { value: "ide,pagaende,pause,fullfort,i_drift,avsluttet", label: "Alle statuser" },
   { value: "pagaende,pause",                         label: "Pågående og pause" },
   { value: "pagaende",                               label: "Kun pågående" },
   { value: "pause",                                  label: "Kun pause" },
@@ -115,7 +115,7 @@ const STATUS_OPTIONS = [
 
 export default function ProjectOverviewPage() {
   const [, navigate] = useLocation();
-  const [statuses, setStatuses] = useState("ide,pagaende,pause,fullfort,avsluttet");
+  const [statuses, setStatuses] = useState("ide,pagaende,pause,fullfort,i_drift,avsluttet");
   const [sort, setSort] = useState<SortKey>("score");
 
   const { data, isLoading, isError } = useGetPortfolioHeatmap(

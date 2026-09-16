@@ -38,6 +38,7 @@ export const statusMap: Record<string, { label: string; color: string }> = {
   pagaende: { label: "Pågående", color: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300" },
   pause: { label: "Pause", color: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300" },
   fullfort: { label: "Fullført", color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300" },
+  i_drift: { label: "I drift", color: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-300" },
   avsluttet: { label: "Avsluttet", color: "bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-gray-400" },
 };
 

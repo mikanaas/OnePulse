@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation } from "wouter";
+import { useLocation, useSearch } from "wouter";
 import {
   getListProjectsQueryKey,
   useArchiveProject,
@@ -22,16 +22,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Archive, ArchiveRestore, FolderOpen, Loader2, Plus, Search } from "lucide-react";
+import { Archive, ArchiveRestore, FolderOpen, Loader2, Plus, Rocket, Search } from "lucide-react";
 import { formatCurrency, statusMap } from "@/lib/format";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 
 export default function ProjectsPage() {
   const [, setLocation] = useLocation();
+  const routeSearch = useSearch();
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<string>("all");
-  const [showArchived, setShowArchived] = useState(false);
+  const [view, setView] = useState<"active" | "operational" | "archived">(
+    new URLSearchParams(routeSearch).get("visning") === "i-drift" ? "operational" : "active",
+  );
   const [actionTarget, setActionTarget] = useState<{
     id: number;
     name: string;
@@ -40,15 +43,17 @@ export default function ProjectsPage() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
+  const listStatus = view === "operational" ? "i_drift" : status !== "all" ? status : undefined;
+  const showArchived = view === "archived";
   const { data: projects, isLoading } = useListProjects({
     search: search || undefined,
-    status: status !== "all" ? status : undefined,
+    status: listStatus,
     archived: showArchived,
   }, {
     query: {
       queryKey: getListProjectsQueryKey({
         search: search || undefined,
-        status: status !== "all" ? status : undefined,
+        status: listStatus,
         archived: showArchived,
       }),
       staleTime: 0,
@@ -99,25 +104,33 @@ export default function ProjectsPage() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Prosjekter</h1>
             <p className="text-muted-foreground">
-              {showArchived
-                ? "Arkiverte prosjekter som kan gjenopprettes."
-                : "Oversikt over alle digitaliserings- og AI-prosjekter."}
+              {view === "archived"
+                ? "Løsninger som ikke ble satt i drift, og som kan gjenopprettes."
+                : view === "operational"
+                  ? "Løsninger som er ferdige og satt i operativ drift."
+                  : "Prosjekter som er under vurdering eller gjennomføring."}
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button
-              variant={showArchived ? "outline" : "secondary"}
-              onClick={() => setShowArchived(false)}
+              variant={view === "active" ? "secondary" : "outline"}
+              onClick={() => { setView("active"); setStatus("all"); }}
             >
               <FolderOpen className="mr-2 h-4 w-4" /> Aktive
             </Button>
             <Button
-              variant={showArchived ? "secondary" : "outline"}
-              onClick={() => setShowArchived(true)}
+              variant={view === "operational" ? "secondary" : "outline"}
+              onClick={() => { setView("operational"); setStatus("all"); }}
+            >
+              <Rocket className="mr-2 h-4 w-4" /> I drift
+            </Button>
+            <Button
+              variant={view === "archived" ? "secondary" : "outline"}
+              onClick={() => { setView("archived"); setStatus("all"); }}
             >
               <Archive className="mr-2 h-4 w-4" /> Arkiv
             </Button>
-            {!showArchived && (
+            {view === "active" && (
               <Button onClick={() => setLocation("/projects/new")}>
                 <Plus className="mr-2 h-4 w-4" /> Nytt prosjekt
               </Button>
@@ -135,17 +148,21 @@ export default function ProjectsPage() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <Select value={status} onValueChange={setStatus}>
-            <SelectTrigger className="w-full sm:w-[180px]">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Alle statuser</SelectItem>
-              {Object.entries(statusMap).map(([key, { label }]) => (
-                <SelectItem key={key} value={key}>{label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {view === "active" && (
+            <Select value={status} onValueChange={setStatus}>
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Alle statuser</SelectItem>
+                {Object.entries(statusMap)
+                  .filter(([key]) => key !== "i_drift" && key !== "avsluttet")
+                  .map(([key, { label }]) => (
+                    <SelectItem key={key} value={key}>{label}</SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
 
         <div className="border rounded-md bg-card">
@@ -170,7 +187,11 @@ export default function ProjectsPage() {
               ) : projects?.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                    {showArchived ? "Ingen arkiverte prosjekter." : "Ingen prosjekter funnet."}
+                    {view === "archived"
+                      ? "Ingen arkiverte prosjekter."
+                      : view === "operational"
+                        ? "Ingen løsninger er satt i drift ennå."
+                        : "Ingen prosjekter funnet."}
                   </TableCell>
                 </TableRow>
               ) : (

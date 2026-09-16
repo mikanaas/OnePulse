@@ -95,6 +95,7 @@ export const ProjectStatus = {
   pagaende: 'pagaende',
   pause: 'pause',
   fullfort: 'fullfort',
+  i_drift: 'i_drift',
   avsluttet: 'avsluttet',
 } as const;
 
@@ -152,6 +153,7 @@ export const ProjectSummaryStatus = {
   pagaende: 'pagaende',
   pause: 'pause',
   fullfort: 'fullfort',
+  i_drift: 'i_drift',
   avsluttet: 'avsluttet',
 } as const;
 
@@ -192,6 +194,7 @@ export const ProjectInputStatus = {
   pagaende: 'pagaende',
   pause: 'pause',
   fullfort: 'fullfort',
+  i_drift: 'i_drift',
   avsluttet: 'avsluttet',
 } as const;
 
@@ -226,6 +229,7 @@ export const ProjectUpdateStatus = {
   pagaende: 'pagaende',
   pause: 'pause',
   fullfort: 'fullfort',
+  i_drift: 'i_drift',
   avsluttet: 'avsluttet',
 } as const;
 

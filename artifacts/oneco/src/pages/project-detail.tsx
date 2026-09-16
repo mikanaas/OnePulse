@@ -39,7 +39,7 @@ export default function ProjectDetail() {
   });
   const updateProject = useUpdateProject();
 
-  const changeStatus = (status: "ide" | "pagaende" | "pause" | "fullfort" | "avsluttet") => {
+  const changeStatus = (status: "ide" | "pagaende" | "pause" | "fullfort" | "i_drift" | "avsluttet") => {
     updateProject.mutate(
       { id, data: { status } },
       {
@@ -49,6 +49,9 @@ export default function ProjectDetail() {
           if (status === "avsluttet") {
             toast({ title: "Prosjekt avsluttet og flyttet til arkiv" });
             setLocation("/projects");
+          } else if (status === "i_drift") {
+            toast({ title: "Prosjekt flyttet til I drift" });
+            setLocation("/projects?visning=i-drift");
           } else {
             toast({ title: "Prosjektstatus oppdatert" });
           }
@@ -89,7 +92,7 @@ export default function ProjectDetail() {
               <h1 className="text-3xl font-bold tracking-tight">{project.name}</h1>
               <Select
                 value={project.status}
-                onValueChange={(value) => changeStatus(value as "ide" | "pagaende" | "pause" | "fullfort" | "avsluttet")}
+                onValueChange={(value) => changeStatus(value as "ide" | "pagaende" | "pause" | "fullfort" | "i_drift" | "avsluttet")}
                 disabled={updateProject.isPending}
               >
                 <SelectTrigger

@@ -1,7 +1,11 @@
 import { Router } from "express";
 import { db } from "../lib/db";
 import { requireAuth } from "../lib/requireAuth";
-import { activeProjectsCondition, archivedProjectsCondition } from "../lib/projectArchive";
+import {
+  activeProjectListCondition,
+  archivedProjectsCondition,
+  operationalProjectsCondition,
+} from "../lib/projectArchive";
 import { projectsTable, projectMembersTable, usersTable, tasksTable, effectEntriesTable, costEntriesTable } from "@workspace/db";
 import { eq, and, or, ilike, sql, isNull } from "drizzle-orm";
 
@@ -16,7 +20,11 @@ router.get("/projects", requireAuth, async (req, res) => {
     archived?: string;
   };
   const conditions: any[] = [
-    archived === "true" ? archivedProjectsCondition() : activeProjectsCondition(),
+    archived === "true"
+      ? archivedProjectsCondition()
+      : status === "i_drift"
+        ? operationalProjectsCondition()
+        : activeProjectListCondition(),
   ];
   if (status) conditions.push(eq(projectsTable.status, status));
   if (businessUnit) conditions.push(eq(projectsTable.businessUnit, businessUnit));

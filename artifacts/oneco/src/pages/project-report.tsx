@@ -39,9 +39,13 @@ function KpiBox({ label, value, sub }: { label: string; value: string; sub?: str
 }
 
 const STATUS_LABEL: Record<string, string> = {
+  ide: "Idé",
   planlegging: "Planlegging",
   pagaende: "Pågående",
+  pause: "Pause",
   fullfort: "Fullført",
+  i_drift: "I drift",
+  avsluttet: "Avsluttet",
   avbrutt: "Avbrutt",
   pa_vent: "På vent",
 };
