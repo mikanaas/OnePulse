@@ -1,8 +1,9 @@
 import { Router } from "express";
 import { db } from "../lib/db";
 import { requireAuth } from "../lib/requireAuth";
+import { activeProjectsCondition, archivedProjectsCondition } from "../lib/projectArchive";
 import { projectsTable, projectMembersTable, usersTable, tasksTable, effectEntriesTable, costEntriesTable } from "@workspace/db";
-import { eq, and, or, ilike, sql, isNull, isNotNull } from "drizzle-orm";
+import { eq, and, or, ilike, sql, isNull } from "drizzle-orm";
 
 const router = Router();
 
@@ -15,7 +16,7 @@ router.get("/projects", requireAuth, async (req, res) => {
     archived?: string;
   };
   const conditions: any[] = [
-    archived === "true" ? isNotNull(projectsTable.archivedAt) : isNull(projectsTable.archivedAt),
+    archived === "true" ? archivedProjectsCondition() : activeProjectsCondition(),
   ];
   if (status) conditions.push(eq(projectsTable.status, status));
   if (businessUnit) conditions.push(eq(projectsTable.businessUnit, businessUnit));
@@ -91,6 +92,7 @@ router.post("/projects", requireAuth, async (req, res) => {
     goalSavingsUnit: body.goalSavingsUnit,
     goalDate: body.goalDate,
     estimatedHours: body.estimatedHours,
+    archivedAt: body.status === "avsluttet" ? new Date() : null,
   }).returning();
   // Auto-add creator as prosjektleder
   await db.insert(projectMembersTable).values({ projectId: project.id, userId: user.id, role: "prosjektleder" }).onConflictDoNothing();
@@ -131,6 +133,7 @@ router.patch("/projects/:id", requireAuth, async (req, res) => {
   for (const key of ["name","description","businessUnit","status","ownerId","startDate","plannedEndDate","goalText","goalSavingsValue","goalSavingsUnit","goalDate","estimatedHours"]) {
     if (body[key] !== undefined) updateData[key] = body[key];
   }
+  if (body.status === "avsluttet") updateData.archivedAt = new Date();
   const [project] = await db.update(projectsTable).set(updateData).where(eq(projectsTable.id, id)).returning();
   if (!project) { res.status(404).json({ error: "Not found" }); return; }
   res.json(project);
@@ -141,7 +144,7 @@ router.delete("/projects/:id", requireAuth, async (req, res) => {
   const id = Number(req.params.id);
   const [project] = await db
     .update(projectsTable)
-    .set({ archivedAt: new Date() })
+    .set({ status: "avsluttet", archivedAt: new Date() })
     .where(and(eq(projectsTable.id, id), isNull(projectsTable.archivedAt)))
     .returning();
   if (!project) { res.status(404).json({ error: "Not found" }); return; }
@@ -153,8 +156,8 @@ router.post("/projects/:id", requireAuth, async (req, res) => {
   const id = Number(req.params.id);
   const [project] = await db
     .update(projectsTable)
-    .set({ archivedAt: null })
-    .where(and(eq(projectsTable.id, id), isNotNull(projectsTable.archivedAt)))
+    .set({ status: "pagaende", archivedAt: null })
+    .where(and(eq(projectsTable.id, id), archivedProjectsCondition()))
     .returning();
   if (!project) { res.status(404).json({ error: "Not found" }); return; }
   res.json(project);

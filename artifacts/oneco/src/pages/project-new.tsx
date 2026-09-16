@@ -47,8 +47,13 @@ export default function ProjectNew() {
       }
     }, {
       onSuccess: (project) => {
-        toast({ title: "Prosjekt opprettet" });
-        setLocation(`/projects/${project.id}`);
+        if (data.status === "avsluttet") {
+          toast({ title: "Prosjekt opprettet og flyttet til arkiv" });
+          setLocation("/projects");
+        } else {
+          toast({ title: "Prosjekt opprettet" });
+          setLocation(`/projects/${project.id}`);
+        }
       },
       onError: () => {
         toast({ title: "Feil", description: "Kunne ikke opprette prosjekt", variant: "destructive" });

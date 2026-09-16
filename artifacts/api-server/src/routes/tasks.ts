@@ -1,8 +1,9 @@
 import { Router } from "express";
 import { db } from "../lib/db";
 import { requireAuth } from "../lib/requireAuth";
+import { activeProjectsCondition } from "../lib/projectArchive";
 import { tasksTable, taskCommentsTable, usersTable, projectsTable } from "@workspace/db";
-import { eq, and, isNull } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 const router = Router();
 
@@ -76,7 +77,7 @@ router.get("/tasks/mine", requireAuth, async (req, res) => {
   const { status } = req.query as { status?: string };
   const conditions: any[] = [
     eq(tasksTable.assigneeId, user.id),
-    isNull(projectsTable.archivedAt),
+    activeProjectsCondition(),
   ];
   if (status) conditions.push(eq(tasksTable.status, status));
   const rows = await db

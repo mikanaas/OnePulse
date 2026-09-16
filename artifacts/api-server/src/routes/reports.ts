@@ -2,6 +2,7 @@ import { Router } from "express";
 import ExcelJS from "exceljs";
 import { db } from "../lib/db";
 import { requireAuth } from "../lib/requireAuth";
+import { activeProjectsCondition } from "../lib/projectArchive";
 import {
   projectsTable,
   effectEntriesTable,
@@ -9,7 +10,7 @@ import {
   tasksTable,
   usersTable,
 } from "@workspace/db";
-import { eq, isNull } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
 const router = Router();
 
@@ -19,7 +20,7 @@ router.get("/reports/excel", requireAuth, async (_req, res) => {
     .select({ project: projectsTable, ownerName: usersTable.name })
     .from(projectsTable)
     .leftJoin(usersTable, eq(projectsTable.ownerId, usersTable.id))
-    .where(isNull(projectsTable.archivedAt));
+    .where(activeProjectsCondition());
 
   const activeProjectIds = new Set(projects.map(({ project }) => project.id));
   const effects = (await db.select().from(effectEntriesTable))

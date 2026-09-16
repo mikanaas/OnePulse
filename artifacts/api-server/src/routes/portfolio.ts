@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { db } from "../lib/db";
 import { requireAuth } from "../lib/requireAuth";
+import { activeProjectsCondition } from "../lib/projectArchive";
 import {
   projectsTable,
   effectEntriesTable,
@@ -23,25 +24,25 @@ router.get("/portfolio/stats", requireAuth, async (_req, res) => {
       ideaProjects: sql<number>`count(*) filter (where ${projectsTable.status} = 'ide')::int`,
     })
     .from(projectsTable)
-    .where(isNull(projectsTable.archivedAt));
+    .where(activeProjectsCondition());
 
   const [savingsRow] = await db
     .select({ total: sql<number>`coalesce(sum(${effectEntriesTable.value}::numeric), 0)::float` })
     .from(effectEntriesTable)
     .innerJoin(projectsTable, eq(effectEntriesTable.projectId, projectsTable.id))
-    .where(isNull(projectsTable.archivedAt));
+    .where(activeProjectsCondition());
 
   const [costsRow] = await db
     .select({ total: sql<number>`coalesce(sum(${costEntriesTable.value}::numeric), 0)::float` })
     .from(costEntriesTable)
     .innerJoin(projectsTable, eq(costEntriesTable.projectId, projectsTable.id))
-    .where(isNull(projectsTable.archivedAt));
+    .where(activeProjectsCondition());
 
   const [membersRow] = await db
     .select({ unique: sql<number>`count(distinct ${projectMembersTable.userId})::int` })
     .from(projectMembersTable)
     .innerJoin(projectsTable, eq(projectMembersTable.projectId, projectsTable.id))
-    .where(isNull(projectsTable.archivedAt));
+    .where(activeProjectsCondition());
 
   res.json({
     totalProjects: stats?.totalProjects ?? 0,
@@ -64,7 +65,7 @@ router.get("/portfolio/savings-over-time", requireAuth, async (_req, res) => {
     })
     .from(effectEntriesTable)
     .innerJoin(projectsTable, eq(effectEntriesTable.projectId, projectsTable.id))
-    .where(isNull(projectsTable.archivedAt))
+    .where(activeProjectsCondition())
     .orderBy(effectEntriesTable.date);
 
   let accumulated = 0;
@@ -80,7 +81,7 @@ router.get("/portfolio/projects-by-status", requireAuth, async (_req, res) => {
   const projects = await db
     .select({ status: projectsTable.status, name: projectsTable.name })
     .from(projectsTable)
-    .where(isNull(projectsTable.archivedAt))
+    .where(activeProjectsCondition())
     .orderBy(projectsTable.name);
   const grouped = projects.reduce<Record<string, string[]>>((acc, p) => {
     if (!acc[p.status]) acc[p.status] = [];
@@ -103,7 +104,7 @@ router.get("/portfolio/projects-by-unit", requireAuth, async (_req, res) => {
       count: sql<number>`count(*)::int`,
     })
     .from(projectsTable)
-    .where(isNull(projectsTable.archivedAt))
+    .where(activeProjectsCondition())
     .groupBy(projectsTable.businessUnit);
   res.json(rows);
 });
@@ -119,7 +120,7 @@ router.get("/portfolio/savings-by-project", requireAuth, async (_req, res) => {
     })
     .from(projectsTable)
     .leftJoin(effectEntriesTable, sql`${effectEntriesTable.projectId} = ${projectsTable.id}`)
-    .where(isNull(projectsTable.archivedAt))
+    .where(activeProjectsCondition())
     .groupBy(projectsTable.id, projectsTable.name, projectsTable.goalSavingsValue);
   res.json(rows);
 });
@@ -168,8 +169,8 @@ router.get("/portfolio/heatmap", requireAuth, async (req, res) => {
     .select()
     .from(projectsTable)
     .where(statuses.length
-      ? and(inArray(projectsTable.status, statuses), isNull(projectsTable.archivedAt))
-      : isNull(projectsTable.archivedAt));
+      ? and(inArray(projectsTable.status, statuses), activeProjectsCondition())
+      : activeProjectsCondition());
 
   if (projects.length === 0) {
     res.json({ rows: [], columnAverages: { timeProgress: 50, savingsVsGoal: 50, taskFlow: 50, activityLevel: 50, netEffect: 50 } });

@@ -1,11 +1,18 @@
 import { useRoute, useLocation, useSearch } from "wouter";
 import { AppLayout } from "@/components/layout";
-import { useGetProject } from "@workspace/api-client-react";
+import {
+  getGetProjectQueryKey,
+  useGetProject,
+  useUpdateProject,
+} from "@workspace/api-client-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { statusMap } from "@/lib/format";
 import { Loader2, ArrowLeft, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { invalidateProjectOverviews } from "@/lib/invalidate-project-overviews";
 
 import { DashboardTab } from "./project/dashboard-tab";
 import { TasksTab } from "./project/tasks-tab";
@@ -19,6 +26,8 @@ const VALID_TABS = ["dashboard", "tasks", "activity", "effects", "costs", "gover
 
 export default function ProjectDetail() {
   const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [, params] = useRoute("/projects/:id");
   const id = params?.id ? parseInt(params.id, 10) : 0;
   const search = useSearch();
@@ -26,8 +35,28 @@ export default function ProjectDetail() {
   const initialTab = VALID_TABS.includes(tabParam as any) ? tabParam! : "dashboard";
 
   const { data: project, isLoading } = useGetProject(id, {
-    query: { enabled: !!id, queryKey: ["project", id] }
+    query: { enabled: !!id, queryKey: getGetProjectQueryKey(id) }
   });
+  const updateProject = useUpdateProject();
+
+  const changeStatus = (status: "ide" | "pagaende" | "pause" | "fullfort" | "avsluttet") => {
+    updateProject.mutate(
+      { id, data: { status } },
+      {
+        onSuccess: () => {
+          void queryClient.invalidateQueries({ queryKey: getGetProjectQueryKey(id) });
+          invalidateProjectOverviews(queryClient);
+          if (status === "avsluttet") {
+            toast({ title: "Prosjekt avsluttet og flyttet til arkiv" });
+            setLocation("/projects");
+          } else {
+            toast({ title: "Prosjektstatus oppdatert" });
+          }
+        },
+        onError: () => toast({ title: "Kunne ikke endre prosjektstatus", variant: "destructive" }),
+      },
+    );
+  };
 
   if (isLoading) {
     return (
@@ -58,9 +87,25 @@ export default function ProjectDetail() {
           <div>
             <div className="flex items-center gap-3 mb-2">
               <h1 className="text-3xl font-bold tracking-tight">{project.name}</h1>
-              <Badge variant="outline" className={statusMap[project.status]?.color}>
-                {statusMap[project.status]?.label || project.status}
-              </Badge>
+              <Select
+                value={project.status}
+                onValueChange={(value) => changeStatus(value as "ide" | "pagaende" | "pause" | "fullfort" | "avsluttet")}
+                disabled={updateProject.isPending}
+              >
+                <SelectTrigger
+                  className={`h-8 w-auto min-w-28 gap-2 rounded-full px-3 text-xs font-semibold ${statusMap[project.status]?.color ?? ""}`}
+                  aria-label="Endre prosjektstatus"
+                >
+                  {updateProject.isPending
+                    ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    : <SelectValue />}
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(statusMap).map(([value, { label }]) => (
+                    <SelectItem key={value} value={value}>{label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <p className="text-muted-foreground max-w-2xl">{project.description}</p>
           </div>
