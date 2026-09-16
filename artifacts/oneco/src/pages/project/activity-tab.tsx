@@ -9,6 +9,7 @@ import { MessageSquare, Wand2, Loader2, FileText, CheckCircle2, Target } from "l
 import { useQueryClient } from "@tanstack/react-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { invalidateProjectOverviews } from "@/lib/invalidate-project-overviews";
 
 const iconMap: Record<string, any> = {
   kommentar: MessageSquare,
@@ -39,6 +40,7 @@ export function ActivityTab({ projectId }: { projectId: number }) {
         onSuccess: () => {
           setContent("");
           queryClient.invalidateQueries({ queryKey: getListActivityQueryKey(projectId) });
+          invalidateProjectOverviews(queryClient);
         },
       }
     );
@@ -51,6 +53,7 @@ export function ActivityTab({ projectId }: { projectId: number }) {
         onSuccess: () => {
           toast({ title: "Oppsummering generert" });
           queryClient.invalidateQueries({ queryKey: getListActivityQueryKey(projectId) });
+          invalidateProjectOverviews(queryClient);
         },
         onError: () => {
           toast({ title: "Feil", description: "Kunne ikke generere oppsummering", variant: "destructive" });

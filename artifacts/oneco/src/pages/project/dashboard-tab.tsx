@@ -22,6 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
+import { invalidateProjectOverviews } from "@/lib/invalidate-project-overviews";
 
 export function DashboardTab({ projectId }: { projectId: number }) {
   const queryClient = useQueryClient();
@@ -49,6 +50,7 @@ export function DashboardTab({ projectId }: { projectId: number }) {
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetProjectQueryKey(projectId) });
+          invalidateProjectOverviews(queryClient);
           toast({ title: "Lagret" });
           onClose();
         },

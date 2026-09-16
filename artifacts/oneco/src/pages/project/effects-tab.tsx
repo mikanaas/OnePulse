@@ -15,6 +15,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { invalidateProjectOverviews } from "@/lib/invalidate-project-overviews";
 
 const schema = z.object({
   date: z.string().min(1, "Dato er påkrevd"),
@@ -57,6 +58,7 @@ export function EffectsTab({ projectId }: { projectId: number }) {
           form.reset();
           queryClient.invalidateQueries({ queryKey: getListEffectsQueryKey(projectId) });
           queryClient.invalidateQueries({ queryKey: getGetProjectQueryKey(projectId) });
+          invalidateProjectOverviews(queryClient);
         },
       }
     );

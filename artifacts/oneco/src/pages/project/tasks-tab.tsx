@@ -65,6 +65,7 @@ import {
   type DragEndEvent,
 } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
+import { invalidateProjectOverviews } from "@/lib/invalidate-project-overviews";
 
 const schema = z.object({
   title: z.string().min(1, "Tittel er påkrevd"),
@@ -316,6 +317,7 @@ export function TasksTab({ projectId }: { projectId: number }) {
           queryClient.invalidateQueries({
             queryKey: getListTasksQueryKey(projectId),
           });
+          invalidateProjectOverviews(queryClient);
         },
       }
     );
@@ -329,6 +331,7 @@ export function TasksTab({ projectId }: { projectId: number }) {
           queryClient.invalidateQueries({
             queryKey: getListTasksQueryKey(projectId),
           });
+          invalidateProjectOverviews(queryClient);
         },
       }
     );

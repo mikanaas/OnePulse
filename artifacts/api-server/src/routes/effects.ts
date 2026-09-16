@@ -2,7 +2,7 @@ import { Router } from "express";
 import { db } from "../lib/db";
 import { requireAuth } from "../lib/requireAuth";
 import { effectEntriesTable, costEntriesTable, usersTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 const router = Router();
 
@@ -81,21 +81,31 @@ router.post("/projects/:projectId/costs", requireAuth, async (req, res) => {
 
 // PATCH /api/projects/:projectId/costs/:id
 router.patch("/projects/:projectId/costs/:id", requireAuth, async (req, res) => {
+  const projectId = Number(req.params.projectId);
   const id = Number(req.params.id);
   const body = req.body as any;
   const updateData: any = {};
   for (const key of ["date","description","value"]) {
     if (body[key] !== undefined) updateData[key] = body[key];
   }
-  const [cost] = await db.update(costEntriesTable).set(updateData).where(eq(costEntriesTable.id, id)).returning();
+  const [cost] = await db
+    .update(costEntriesTable)
+    .set(updateData)
+    .where(and(eq(costEntriesTable.id, id), eq(costEntriesTable.projectId, projectId)))
+    .returning();
   if (!cost) { res.status(404).json({ error: "Not found" }); return; }
   res.json(cost);
 });
 
 // DELETE /api/projects/:projectId/costs/:id
 router.delete("/projects/:projectId/costs/:id", requireAuth, async (req, res) => {
+  const projectId = Number(req.params.projectId);
   const id = Number(req.params.id);
-  await db.delete(costEntriesTable).where(eq(costEntriesTable.id, id));
+  const [cost] = await db
+    .delete(costEntriesTable)
+    .where(and(eq(costEntriesTable.id, id), eq(costEntriesTable.projectId, projectId)))
+    .returning({ id: costEntriesTable.id });
+  if (!cost) { res.status(404).json({ error: "Not found" }); return; }
   res.status(204).end();
 });
 

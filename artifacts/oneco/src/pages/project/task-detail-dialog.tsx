@@ -46,6 +46,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Loader2, Trash2 } from "lucide-react";
+import { invalidateProjectOverviews } from "@/lib/invalidate-project-overviews";
 
 const schema = z.object({
   title: z.string().min(1, "Tittel er påkrevd"),
@@ -131,6 +132,7 @@ export function TaskDetailDialog({ task, projectId, open, onOpenChange }: Props)
           queryClient.invalidateQueries({
             queryKey: getListTasksQueryKey(projectId),
           });
+          invalidateProjectOverviews(queryClient);
           onOpenChange(false);
         },
         onError: () => {
@@ -150,6 +152,7 @@ export function TaskDetailDialog({ task, projectId, open, onOpenChange }: Props)
           queryClient.invalidateQueries({
             queryKey: getListTasksQueryKey(projectId),
           });
+          invalidateProjectOverviews(queryClient);
           onOpenChange(false);
         },
         onError: () => {

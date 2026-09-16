@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Loader2, Save, Users, Briefcase, Link2, ShieldAlert, CheckSquare, Target } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { invalidateProjectOverviews } from "@/lib/invalidate-project-overviews";
 import { formatDate } from "@/lib/format";
 
 type FormValues = {
@@ -393,6 +394,7 @@ function ProjectGoalCard({ projectId }: { projectId: number }) {
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetProjectQueryKey(projectId) });
+          invalidateProjectOverviews(queryClient);
           toast({ title: "Prosjektmål lagret" });
         },
         onError: () => toast({ title: "Kunne ikke lagre prosjektmål", variant: "destructive" }),

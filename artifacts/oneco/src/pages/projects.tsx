@@ -44,6 +44,16 @@ export default function ProjectsPage() {
     search: search || undefined,
     status: status !== "all" ? status : undefined,
     archived: showArchived,
+  }, {
+    query: {
+      queryKey: getListProjectsQueryKey({
+        search: search || undefined,
+        status: status !== "all" ? status : undefined,
+        archived: showArchived,
+      }),
+      staleTime: 0,
+      refetchOnMount: "always",
+    },
   });
   const archiveProject = useArchiveProject();
   const restoreProject = useRestoreProject();

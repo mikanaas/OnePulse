@@ -120,7 +120,13 @@ export default function ProjectOverviewPage() {
 
   const { data, isLoading, isError } = useGetPortfolioHeatmap(
     { statuses },
-    { query: { queryKey: ["portfolio-heatmap", statuses] } }
+    {
+      query: {
+        queryKey: ["portfolio-heatmap", statuses],
+        staleTime: 0,
+        refetchOnMount: "always",
+      },
+    }
   );
 
   const rows = [...(data?.rows ?? [])].sort((a, b) => {
