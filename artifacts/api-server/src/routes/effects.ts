@@ -36,21 +36,31 @@ router.post("/projects/:projectId/effects", requireAuth, async (req, res) => {
 
 // PATCH /api/projects/:projectId/effects/:id
 router.patch("/projects/:projectId/effects/:id", requireAuth, async (req, res) => {
+  const projectId = Number(req.params.projectId);
   const id = Number(req.params.id);
   const body = req.body as any;
   const updateData: any = {};
   for (const key of ["date","description","value","unit","type","confidenceLevel"]) {
     if (body[key] !== undefined) updateData[key] = body[key];
   }
-  const [effect] = await db.update(effectEntriesTable).set(updateData).where(eq(effectEntriesTable.id, id)).returning();
+  const [effect] = await db
+    .update(effectEntriesTable)
+    .set(updateData)
+    .where(and(eq(effectEntriesTable.id, id), eq(effectEntriesTable.projectId, projectId)))
+    .returning();
   if (!effect) { res.status(404).json({ error: "Not found" }); return; }
   res.json(effect);
 });
 
 // DELETE /api/projects/:projectId/effects/:id
 router.delete("/projects/:projectId/effects/:id", requireAuth, async (req, res) => {
+  const projectId = Number(req.params.projectId);
   const id = Number(req.params.id);
-  await db.delete(effectEntriesTable).where(eq(effectEntriesTable.id, id));
+  const [effect] = await db
+    .delete(effectEntriesTable)
+    .where(and(eq(effectEntriesTable.id, id), eq(effectEntriesTable.projectId, projectId)))
+    .returning({ id: effectEntriesTable.id });
+  if (!effect) { res.status(404).json({ error: "Not found" }); return; }
   res.status(204).end();
 });
 

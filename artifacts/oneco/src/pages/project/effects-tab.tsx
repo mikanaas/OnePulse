@@ -1,4 +1,13 @@
-import { useListEffects, useCreateEffect, useParseEffect, getGetProjectQueryKey, getListEffectsQueryKey } from "@workspace/api-client-react";
+import {
+  getGetProjectQueryKey,
+  getListEffectsQueryKey,
+  useCreateEffect,
+  useDeleteEffect,
+  useListEffects,
+  useParseEffect,
+  useUpdateEffect,
+} from "@workspace/api-client-react";
+import type { EffectEntry } from "@workspace/api-client-react";
 import { useState } from "react";
 import { formatCurrency, formatDate, effectTypeMap, confidenceMap } from "@/lib/format";
 import { Button } from "@/components/ui/button";
@@ -8,7 +17,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Wand2, Loader2, Plus, X } from "lucide-react";
+import { Wand2, Loader2, Pencil, Plus, Trash2, X } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,6 +25,24 @@ import * as z from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { invalidateProjectOverviews } from "@/lib/invalidate-project-overviews";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const schema = z.object({
   date: z.string().min(1, "Dato er påkrevd"),
@@ -29,12 +56,16 @@ const schema = z.object({
 export function EffectsTab({ projectId }: { projectId: number }) {
   const { data: effects, isLoading } = useListEffects(projectId, { query: { enabled: !!projectId, queryKey: getListEffectsQueryKey(projectId) } });
   const createEffect = useCreateEffect();
+  const updateEffect = useUpdateEffect();
+  const deleteEffect = useDeleteEffect();
   const parseEffect = useParseEffect();
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   const [showForm, setShowForm] = useState(false);
   const [aiText, setAiText] = useState("");
+  const [editTarget, setEditTarget] = useState<EffectEntry | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<EffectEntry | null>(null);
 
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
@@ -48,6 +79,24 @@ export function EffectsTab({ projectId }: { projectId: number }) {
     },
   });
 
+  const editForm = useForm<z.infer<typeof schema>>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      date: "",
+      description: "",
+      value: 0,
+      unit: "kr",
+      type: "engangs",
+      confidenceLevel: "middels",
+    },
+  });
+
+  const refreshEffectData = () => {
+    void queryClient.invalidateQueries({ queryKey: getListEffectsQueryKey(projectId) });
+    void queryClient.invalidateQueries({ queryKey: getGetProjectQueryKey(projectId) });
+    invalidateProjectOverviews(queryClient);
+  };
+
   const onSubmit = (data: z.infer<typeof schema>) => {
     createEffect.mutate(
       { projectId, data },
@@ -56,11 +105,52 @@ export function EffectsTab({ projectId }: { projectId: number }) {
           toast({ title: "Effekt lagt til" });
           setShowForm(false);
           form.reset();
-          queryClient.invalidateQueries({ queryKey: getListEffectsQueryKey(projectId) });
-          queryClient.invalidateQueries({ queryKey: getGetProjectQueryKey(projectId) });
-          invalidateProjectOverviews(queryClient);
+          refreshEffectData();
         },
+        onError: () => toast({ title: "Kunne ikke legge til effekt", variant: "destructive" }),
       }
+    );
+  };
+
+  const openEdit = (effect: EffectEntry) => {
+    setEditTarget(effect);
+    editForm.reset({
+      date: effect.date.split("T")[0],
+      description: effect.description,
+      value: Number(effect.value),
+      unit: effect.unit,
+      type: effect.type,
+      confidenceLevel: effect.confidenceLevel,
+    });
+  };
+
+  const handleUpdate = (data: z.infer<typeof schema>) => {
+    if (!editTarget) return;
+    updateEffect.mutate(
+      { projectId, id: editTarget.id, data },
+      {
+        onSuccess: () => {
+          toast({ title: "Effekt oppdatert" });
+          setEditTarget(null);
+          refreshEffectData();
+        },
+        onError: () => toast({ title: "Kunne ikke oppdatere effekten", variant: "destructive" }),
+      },
+    );
+  };
+
+  const handleDelete = () => {
+    if (!deleteTarget) return;
+    deleteEffect.mutate(
+      { projectId, id: deleteTarget.id },
+      {
+        onSuccess: () => {
+          toast({ title: "Effekt slettet" });
+          setDeleteTarget(null);
+          refreshEffectData();
+        },
+        onError: () => toast({ title: "Kunne ikke slette effekten", variant: "destructive" }),
+      },
     );
   };
 
@@ -245,13 +335,14 @@ export function EffectsTab({ projectId }: { projectId: number }) {
               <TableHead>Sikkerhet</TableHead>
               <TableHead>Registrert av</TableHead>
               <TableHead className="text-right">Verdi</TableHead>
+              <TableHead className="w-[96px] text-right">Handling</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow><TableCell colSpan={6} className="text-center py-8"><Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" /></TableCell></TableRow>
+              <TableRow><TableCell colSpan={7} className="text-center py-8"><Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" /></TableCell></TableRow>
             ) : effects?.length === 0 ? (
-              <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Ingen effekter registrert.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Ingen effekter registrert.</TableCell></TableRow>
             ) : (
               effects?.map((effect) => (
                 <TableRow key={effect.id}>
@@ -271,12 +362,178 @@ export function EffectsTab({ projectId }: { projectId: number }) {
                   <TableCell className="text-right font-semibold">
                     {effect.unit === "kr" ? formatCurrency(effect.value) : `${effect.value} timer`}
                   </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title={`Rediger ${effect.description}`}
+                        aria-label={`Rediger ${effect.description}`}
+                        disabled={updateEffect.isPending || deleteEffect.isPending}
+                        onClick={() => openEdit(effect)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-muted-foreground hover:bg-red-50 hover:text-red-600"
+                        title={`Slett ${effect.description}`}
+                        aria-label={`Slett ${effect.description}`}
+                        disabled={updateEffect.isPending || deleteEffect.isPending}
+                        onClick={() => setDeleteTarget(effect)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
                 </TableRow>
               ))
             )}
           </TableBody>
         </Table>
       </div>
+
+      <Dialog
+        open={!!editTarget}
+        onOpenChange={(open) => !open && !updateEffect.isPending && setEditTarget(null)}
+      >
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Rediger effekt</DialogTitle>
+            <DialogDescription>Oppdater opplysningene for effekten.</DialogDescription>
+          </DialogHeader>
+          <Form {...editForm}>
+            <form onSubmit={editForm.handleSubmit(handleUpdate)} className="space-y-4">
+              <FormField
+                control={editForm.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Beskrivelse</FormLabel>
+                    <FormControl><Input {...field} disabled={updateEffect.isPending} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField
+                  control={editForm.control}
+                  name="date"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Dato</FormLabel>
+                      <FormControl><Input type="date" {...field} disabled={updateEffect.isPending} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editForm.control}
+                  name="value"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Verdi</FormLabel>
+                      <FormControl><Input type="number" {...field} disabled={updateEffect.isPending} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editForm.control}
+                  name="unit"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Enhet</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value} disabled={updateEffect.isPending}>
+                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                        <SelectContent>
+                          <SelectItem value="kr">NOK (kr)</SelectItem>
+                          <SelectItem value="timer">Timer</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editForm.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Type</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value} disabled={updateEffect.isPending}>
+                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                        <SelectContent>
+                          <SelectItem value="engangs">Engangsbesparelse</SelectItem>
+                          <SelectItem value="lopende_arlig">Løpende årlig</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editForm.control}
+                  name="confidenceLevel"
+                  render={({ field }) => (
+                    <FormItem className="sm:col-span-2">
+                      <FormLabel>Sikkerhetsnivå</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value} disabled={updateEffect.isPending}>
+                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                        <SelectContent>
+                          <SelectItem value="lav">Lav</SelectItem>
+                          <SelectItem value="middels">Middels</SelectItem>
+                          <SelectItem value="hoy">Høy</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" disabled={updateEffect.isPending} onClick={() => setEditTarget(null)}>
+                  Avbryt
+                </Button>
+                <Button type="submit" disabled={updateEffect.isPending}>
+                  {updateEffect.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                  Lagre endringer
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && !deleteEffect.isPending && setDeleteTarget(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Slett effekt?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteTarget
+                ? `«${deleteTarget.description}» slettes permanent. Handlingen kan ikke angres.`
+                : null}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteEffect.isPending}>Avbryt</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700"
+              disabled={deleteEffect.isPending}
+              onClick={(event) => {
+                event.preventDefault();
+                handleDelete();
+              }}
+            >
+              {deleteEffect.isPending ? "Sletter..." : "Slett effekt"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
