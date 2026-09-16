@@ -257,6 +257,87 @@ export interface ProjectUpdate {
   estimatedHours?: number;
 }
 
+export type ExistingProjectRegistrationInputStatus = typeof ExistingProjectRegistrationInputStatus[keyof typeof ExistingProjectRegistrationInputStatus];
+
+
+export const ExistingProjectRegistrationInputStatus = {
+  pagaende: 'pagaende',
+  pause: 'pause',
+  fullfort: 'fullfort',
+  i_drift: 'i_drift',
+} as const;
+
+export type ExistingProjectRegistrationInputPersonalData = typeof ExistingProjectRegistrationInputPersonalData[keyof typeof ExistingProjectRegistrationInputPersonalData];
+
+
+export const ExistingProjectRegistrationInputPersonalData = {
+  ja: 'ja',
+  nei: 'nei',
+  ukjent: 'ukjent',
+} as const;
+
+export type ExistingProjectRegistrationInputSensitiveData = typeof ExistingProjectRegistrationInputSensitiveData[keyof typeof ExistingProjectRegistrationInputSensitiveData];
+
+
+export const ExistingProjectRegistrationInputSensitiveData = {
+  ja: 'ja',
+  nei: 'nei',
+  ukjent: 'ukjent',
+} as const;
+
+export type ExistingProjectRegistrationInputRiskClassification = typeof ExistingProjectRegistrationInputRiskClassification[keyof typeof ExistingProjectRegistrationInputRiskClassification];
+
+
+export const ExistingProjectRegistrationInputRiskClassification = {
+  lav: 'lav',
+  middels: 'middels',
+  høy: 'høy',
+} as const;
+
+export interface ExistingProjectRegistrationInput {
+  /** @minLength 1 */
+  name: string;
+  /** @minLength 1 */
+  description: string;
+  /** @minLength 1 */
+  businessUnit: string;
+  ownerId?: number;
+  /** @minLength 1 */
+  projectOwner: string;
+  techOwner?: string;
+  contactEmail?: string;
+  status?: ExistingProjectRegistrationInputStatus;
+  startDate?: string;
+  plannedEndDate?: string;
+  platformTools?: string;
+  systemIntegrations?: string;
+  integrationDataFlow?: string;
+  projectDependencies?: string;
+  dataTypes?: string;
+  dataStorage?: string;
+  dataGeography?: string;
+  dataRetention?: string;
+  personalData?: ExistingProjectRegistrationInputPersonalData;
+  sensitiveData?: ExistingProjectRegistrationInputSensitiveData;
+  aiVendor?: string;
+  humanInLoop?: string;
+  riskClassification?: ExistingProjectRegistrationInputRiskClassification;
+}
+
+export interface ExistingProjectImportInput {
+  fileBase64: string;
+}
+
+export interface ExistingProjectImportError {
+  row: number;
+  message: string;
+}
+
+export interface ExistingProjectImportResult {
+  created: number;
+  errors: ExistingProjectImportError[];
+}
+
 export type ProjectMemberRole = typeof ProjectMemberRole[keyof typeof ProjectMemberRole];
 
 
@@ -827,6 +908,30 @@ export interface PortfolioAnalysis {
 /**
  * @nullable
  */
+export type ProjectGovernancePersonalData = typeof ProjectGovernancePersonalData[keyof typeof ProjectGovernancePersonalData] | null;
+
+
+export const ProjectGovernancePersonalData = {
+  ja: 'ja',
+  nei: 'nei',
+  ukjent: 'ukjent',
+} as const;
+
+/**
+ * @nullable
+ */
+export type ProjectGovernanceSensitiveData = typeof ProjectGovernanceSensitiveData[keyof typeof ProjectGovernanceSensitiveData] | null;
+
+
+export const ProjectGovernanceSensitiveData = {
+  ja: 'ja',
+  nei: 'nei',
+  ukjent: 'ukjent',
+} as const;
+
+/**
+ * @nullable
+ */
 export type ProjectGovernanceRiskClassification = typeof ProjectGovernanceRiskClassification[keyof typeof ProjectGovernanceRiskClassification] | null;
 
 
@@ -877,9 +982,21 @@ export interface ProjectGovernance {
   /** @nullable */
   dataTypes?: string | null;
   /** @nullable */
+  dataStorage?: string | null;
+  /** @nullable */
+  dataRetention?: string | null;
+  /** @nullable */
+  personalData?: ProjectGovernancePersonalData;
+  /** @nullable */
+  sensitiveData?: ProjectGovernanceSensitiveData;
+  /** @nullable */
   aiVendor?: string | null;
   /** @nullable */
   dataGeography?: string | null;
+  /** @nullable */
+  integrationDataFlow?: string | null;
+  /** @nullable */
+  contactEmail?: string | null;
   /** @nullable */
   riskClassification?: ProjectGovernanceRiskClassification;
   /** @nullable */
@@ -891,6 +1008,30 @@ export interface ProjectGovernance {
   /** @nullable */
   updatedAt?: string | null;
 }
+
+/**
+ * @nullable
+ */
+export type ProjectGovernanceInputPersonalData = typeof ProjectGovernanceInputPersonalData[keyof typeof ProjectGovernanceInputPersonalData] | null;
+
+
+export const ProjectGovernanceInputPersonalData = {
+  ja: 'ja',
+  nei: 'nei',
+  ukjent: 'ukjent',
+} as const;
+
+/**
+ * @nullable
+ */
+export type ProjectGovernanceInputSensitiveData = typeof ProjectGovernanceInputSensitiveData[keyof typeof ProjectGovernanceInputSensitiveData] | null;
+
+
+export const ProjectGovernanceInputSensitiveData = {
+  ja: 'ja',
+  nei: 'nei',
+  ukjent: 'ukjent',
+} as const;
 
 /**
  * @nullable
@@ -944,9 +1085,21 @@ export interface ProjectGovernanceInput {
   /** @nullable */
   dataTypes?: string | null;
   /** @nullable */
+  dataStorage?: string | null;
+  /** @nullable */
+  dataRetention?: string | null;
+  /** @nullable */
+  personalData?: ProjectGovernanceInputPersonalData;
+  /** @nullable */
+  sensitiveData?: ProjectGovernanceInputSensitiveData;
+  /** @nullable */
   aiVendor?: string | null;
   /** @nullable */
   dataGeography?: string | null;
+  /** @nullable */
+  integrationDataFlow?: string | null;
+  /** @nullable */
+  contactEmail?: string | null;
   /** @nullable */
   riskClassification?: ProjectGovernanceInputRiskClassification;
   /** @nullable */

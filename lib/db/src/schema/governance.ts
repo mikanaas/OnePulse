@@ -24,8 +24,14 @@ export const projectGovernanceTable = pgTable("project_governance", {
 
   // 4. Data og risiko
   dataTypes: text("data_types"),
+  dataStorage: text("data_storage"),
+  dataRetention: text("data_retention"),
+  personalData: text("personal_data"),
+  sensitiveData: text("sensitive_data"),
   aiVendor: text("ai_vendor"),
   dataGeography: text("data_geography"),
+  integrationDataFlow: text("integration_data_flow"),
+  contactEmail: text("contact_email"),
   riskClassification: text("risk_classification"),
   humanInLoop: text("human_in_loop"),
 

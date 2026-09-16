@@ -203,6 +203,58 @@ export const CreateProjectBody = zod.object({
 
 
 /**
+ * @summary Register an already active AI project with governance data
+ */
+
+
+
+
+
+
+export const RegisterExistingProjectBody = zod.object({
+  "name": zod.string().min(1),
+  "description": zod.string().min(1),
+  "businessUnit": zod.string().min(1),
+  "ownerId": zod.number().optional(),
+  "projectOwner": zod.string().min(1),
+  "techOwner": zod.string().optional(),
+  "contactEmail": zod.string().optional(),
+  "status": zod.enum(['pagaende', 'pause', 'fullfort', 'i_drift']).optional(),
+  "startDate": zod.string().optional(),
+  "plannedEndDate": zod.string().optional(),
+  "platformTools": zod.string().optional(),
+  "systemIntegrations": zod.string().optional(),
+  "integrationDataFlow": zod.string().optional(),
+  "projectDependencies": zod.string().optional(),
+  "dataTypes": zod.string().optional(),
+  "dataStorage": zod.string().optional(),
+  "dataGeography": zod.string().optional(),
+  "dataRetention": zod.string().optional(),
+  "personalData": zod.enum(['ja', 'nei', 'ukjent']).optional(),
+  "sensitiveData": zod.enum(['ja', 'nei', 'ukjent']).optional(),
+  "aiVendor": zod.string().optional(),
+  "humanInLoop": zod.string().optional(),
+  "riskClassification": zod.enum(['lav', 'middels', 'høy']).optional()
+})
+
+
+/**
+ * @summary Import existing AI projects from an Excel workbook
+ */
+export const ImportExistingProjectsBody = zod.object({
+  "fileBase64": zod.string()
+})
+
+export const ImportExistingProjectsResponse = zod.object({
+  "created": zod.number(),
+  "errors": zod.array(zod.object({
+  "row": zod.number(),
+  "message": zod.string()
+}))
+})
+
+
+/**
  * @summary Get full project details
  */
 export const GetProjectParams = zod.object({
@@ -831,8 +883,14 @@ export const GetGovernanceResponse = zod.object({
   "systemIntegrations": zod.string().nullish(),
   "projectDependencies": zod.string().nullish(),
   "dataTypes": zod.string().nullish(),
+  "dataStorage": zod.string().nullish(),
+  "dataRetention": zod.string().nullish(),
+  "personalData": zod.union([zod.literal('ja'),zod.literal('nei'),zod.literal('ukjent'),zod.literal(null)]).nullish(),
+  "sensitiveData": zod.union([zod.literal('ja'),zod.literal('nei'),zod.literal('ukjent'),zod.literal(null)]).nullish(),
   "aiVendor": zod.string().nullish(),
   "dataGeography": zod.string().nullish(),
+  "integrationDataFlow": zod.string().nullish(),
+  "contactEmail": zod.string().nullish(),
   "riskClassification": zod.union([zod.literal('lav'),zod.literal('middels'),zod.literal('høy'),zod.literal(null)]).nullish(),
   "humanInLoop": zod.string().nullish(),
   "governanceStatus": zod.union([zod.literal('under_vurdering'),zod.literal('godkjent_pilot'),zod.literal('godkjent_produksjon'),zod.literal('amnesti'),zod.literal('avvikling'),zod.literal(null)]).nullish(),
@@ -861,8 +919,14 @@ export const UpsertGovernanceBody = zod.object({
   "systemIntegrations": zod.string().nullish(),
   "projectDependencies": zod.string().nullish(),
   "dataTypes": zod.string().nullish(),
+  "dataStorage": zod.string().nullish(),
+  "dataRetention": zod.string().nullish(),
+  "personalData": zod.union([zod.literal('ja'),zod.literal('nei'),zod.literal('ukjent'),zod.literal(null)]).nullish(),
+  "sensitiveData": zod.union([zod.literal('ja'),zod.literal('nei'),zod.literal('ukjent'),zod.literal(null)]).nullish(),
   "aiVendor": zod.string().nullish(),
   "dataGeography": zod.string().nullish(),
+  "integrationDataFlow": zod.string().nullish(),
+  "contactEmail": zod.string().nullish(),
   "riskClassification": zod.union([zod.literal('lav'),zod.literal('middels'),zod.literal('høy'),zod.literal(null)]).nullish(),
   "humanInLoop": zod.string().nullish(),
   "governanceStatus": zod.union([zod.literal('under_vurdering'),zod.literal('godkjent_pilot'),zod.literal('godkjent_produksjon'),zod.literal('amnesti'),zod.literal('avvikling'),zod.literal(null)]).nullish(),
@@ -883,8 +947,14 @@ export const UpsertGovernanceResponse = zod.object({
   "systemIntegrations": zod.string().nullish(),
   "projectDependencies": zod.string().nullish(),
   "dataTypes": zod.string().nullish(),
+  "dataStorage": zod.string().nullish(),
+  "dataRetention": zod.string().nullish(),
+  "personalData": zod.union([zod.literal('ja'),zod.literal('nei'),zod.literal('ukjent'),zod.literal(null)]).nullish(),
+  "sensitiveData": zod.union([zod.literal('ja'),zod.literal('nei'),zod.literal('ukjent'),zod.literal(null)]).nullish(),
   "aiVendor": zod.string().nullish(),
   "dataGeography": zod.string().nullish(),
+  "integrationDataFlow": zod.string().nullish(),
+  "contactEmail": zod.string().nullish(),
   "riskClassification": zod.union([zod.literal('lav'),zod.literal('middels'),zod.literal('høy'),zod.literal(null)]).nullish(),
   "humanInLoop": zod.string().nullish(),
   "governanceStatus": zod.union([zod.literal('under_vurdering'),zod.literal('godkjent_pilot'),zod.literal('godkjent_produksjon'),zod.literal('amnesti'),zod.literal('avvikling'),zod.literal(null)]).nullish(),

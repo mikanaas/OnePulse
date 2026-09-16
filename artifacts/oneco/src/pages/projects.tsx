@@ -22,7 +22,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Archive, ArchiveRestore, FolderOpen, Loader2, Plus, Rocket, Search } from "lucide-react";
+import { Archive, ArchiveRestore, FolderOpen, Loader2, Plus, Rocket, Search, FileUp } from "lucide-react";
 import { formatCurrency, statusMap } from "@/lib/format";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -131,9 +131,14 @@ export default function ProjectsPage() {
               <Archive className="mr-2 h-4 w-4" /> Arkiv
             </Button>
             {view === "active" && (
-              <Button onClick={() => setLocation("/projects/new")}>
-                <Plus className="mr-2 h-4 w-4" /> Nytt prosjekt
-              </Button>
+              <>
+                <Button variant="outline" onClick={() => setLocation("/projects/register-existing")}>
+                  <FileUp className="mr-2 h-4 w-4" /> Registrer eksisterende
+                </Button>
+                <Button onClick={() => setLocation("/projects/new")}>
+                  <Plus className="mr-2 h-4 w-4" /> Nytt prosjekt
+                </Button>
+              </>
             )}
           </div>
         </div>

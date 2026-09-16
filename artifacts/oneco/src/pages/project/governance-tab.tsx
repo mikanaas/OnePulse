@@ -33,10 +33,16 @@ type FormValues = {
   strategicGoalLink: string;
   platformTools: string;
   systemIntegrations: string;
+  integrationDataFlow: string;
   projectDependencies: string;
   dataTypes: string;
+  dataStorage: string;
+  dataRetention: string;
+  personalData: string;
+  sensitiveData: string;
   aiVendor: string;
   dataGeography: string;
+  contactEmail: string;
   riskClassification: string;
   humanInLoop: string;
   governanceStatus: string;
@@ -85,10 +91,16 @@ export function GovernanceTab({ projectId }: { projectId: number }) {
       strategicGoalLink: "",
       platformTools: "",
       systemIntegrations: "",
+      integrationDataFlow: "",
       projectDependencies: "",
       dataTypes: "",
+      dataStorage: "",
+      dataRetention: "",
+      personalData: "",
+      sensitiveData: "",
       aiVendor: "",
       dataGeography: "",
+      contactEmail: "",
       riskClassification: "",
       humanInLoop: "",
       governanceStatus: "",
@@ -109,10 +121,16 @@ export function GovernanceTab({ projectId }: { projectId: number }) {
       strategicGoalLink: governance.strategicGoalLink ?? "",
       platformTools: governance.platformTools ?? "",
       systemIntegrations: governance.systemIntegrations ?? "",
+      integrationDataFlow: governance.integrationDataFlow ?? "",
       projectDependencies: governance.projectDependencies ?? "",
       dataTypes: governance.dataTypes ?? "",
+      dataStorage: governance.dataStorage ?? "",
+      dataRetention: governance.dataRetention ?? "",
+      personalData: governance.personalData ?? "",
+      sensitiveData: governance.sensitiveData ?? "",
       aiVendor: governance.aiVendor ?? "",
       dataGeography: governance.dataGeography ?? "",
+      contactEmail: governance.contactEmail ?? "",
       riskClassification: governance.riskClassification ?? "",
       humanInLoop: governance.humanInLoop ?? "",
       governanceStatus: governance.governanceStatus ?? "",
@@ -122,6 +140,15 @@ export function GovernanceTab({ projectId }: { projectId: number }) {
 
   const riskVal = watch("riskClassification");
   const statusVal = watch("governanceStatus");
+  const personalDataVal = watch("personalData");
+  const sensitiveDataVal = watch("sensitiveData");
+  const completenessValues = [
+    watch("projectOwner"), watch("techOwner"), watch("platformTools"), watch("systemIntegrations"),
+    watch("integrationDataFlow"), watch("dataTypes"), watch("dataStorage"), watch("dataGeography"),
+    personalDataVal, sensitiveDataVal, watch("aiVendor"), watch("humanInLoop"), riskVal,
+  ];
+  const mappedFields = completenessValues.filter((value) => value && value !== "ukjent").length;
+  const completeness = Math.round((mappedFields / completenessValues.length) * 100);
 
   const onSubmit = async (data: FormValues) => {
     setSaving(true);
@@ -152,6 +179,21 @@ export function GovernanceTab({ projectId }: { projectId: number }) {
       <ProjectGoalCard projectId={projectId} />
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+
+      <Card className="border-primary/20 bg-primary/5">
+        <CardContent className="p-4">
+          <div className="mb-2 flex items-center justify-between gap-4 text-sm">
+            <div>
+              <p className="font-semibold">Kartleggingsgrad</p>
+              <p className="text-muted-foreground">Ukjente og tomme felt regnes som ikke avklart.</p>
+            </div>
+            <span className="font-semibold text-primary">{completeness} %</span>
+          </div>
+          <div className="h-2 overflow-hidden rounded-full bg-primary/10">
+            <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${completeness}%` }} />
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Status-badges øverst */}
       <div className="flex flex-wrap gap-2">
@@ -192,6 +234,9 @@ export function GovernanceTab({ projectId }: { projectId: number }) {
           </div>
           <Field label="Backup / stedfortreder">
             <Input placeholder="Hvem kan ta over hvis ansvarlig er borte?" {...register("backupContact")} />
+          </Field>
+          <Field label="Kontakt-e-post">
+            <Input type="email" placeholder="navn@oneco.no" {...register("contactEmail")} />
           </Field>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="Sist gjennomgått">
@@ -254,6 +299,13 @@ export function GovernanceTab({ projectId }: { projectId: number }) {
               {...register("systemIntegrations")}
             />
           </Field>
+          <Field label="Dataflyt og integrasjonstilgang">
+            <Textarea
+              rows={2}
+              placeholder="Hva leses eller skrives, og hvordan flyter data mellom systemene?"
+              {...register("integrationDataFlow")}
+            />
+          </Field>
           <Field label="Andre prosjektavhengigheter">
             <Textarea
               rows={2}
@@ -282,11 +334,41 @@ export function GovernanceTab({ projectId }: { projectId: number }) {
             />
           </Field>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Field label="Behandler personopplysninger?">
+              <Select value={personalDataVal || ""} onValueChange={(v) => setValue("personalData", v === "_none" ? "" : v)}>
+                <SelectTrigger><SelectValue placeholder="Velg..." /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="_none">— Ikke avklart —</SelectItem>
+                  <SelectItem value="ja">Ja</SelectItem>
+                  <SelectItem value="nei">Nei</SelectItem>
+                  <SelectItem value="ukjent">Ukjent</SelectItem>
+                </SelectContent>
+              </Select>
+            </Field>
+            <Field label="Behandler sensitive data?">
+              <Select value={sensitiveDataVal || ""} onValueChange={(v) => setValue("sensitiveData", v === "_none" ? "" : v)}>
+                <SelectTrigger><SelectValue placeholder="Velg..." /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="_none">— Ikke avklart —</SelectItem>
+                  <SelectItem value="ja">Ja</SelectItem>
+                  <SelectItem value="nei">Nei</SelectItem>
+                  <SelectItem value="ukjent">Ukjent</SelectItem>
+                </SelectContent>
+              </Select>
+            </Field>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="AI-leverandør / modell">
               <Input placeholder="f.eks. Anthropic Claude 3.5, OpenAI GPT-4o..." {...register("aiVendor")} />
             </Field>
+            <Field label="Datalagring / system">
+              <Input placeholder="f.eks. Azure SQL, SharePoint, lokal filserver..." {...register("dataStorage")} />
+            </Field>
             <Field label="Datalagring / geografi">
               <Input placeholder="f.eks. EU (AWS Frankfurt), USA..." {...register("dataGeography")} />
+            </Field>
+            <Field label="Lagringstid og sletterutiner">
+              <Input placeholder="f.eks. 12 måneder, slettes ved prosjektslutt..." {...register("dataRetention")} />
             </Field>
           </div>
           <Field label="Grad av menneske-i-løypa">

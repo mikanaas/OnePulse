@@ -23,6 +23,7 @@ import AiAnalysisPage from "@/pages/ai-analysis";
 import ProjectOverviewPage from "@/pages/project-overview";
 import ProposalsPage from "@/pages/proposals";
 import OutlookAddinPage from "@/pages/outlook-addin";
+import ProjectRegisterExisting from "@/pages/project-register-existing";
 import { ChatPanel } from "@/components/chat-panel";
 
 const clerkPubKey = publishableKeyFromHost(
@@ -196,6 +197,7 @@ function ClerkProviderWithRoutes() {
           
           <Route path="/portfolio" component={() => <ProtectedRoute component={PortfolioPage} />} />
           <Route path="/projects/new" component={() => <ProtectedRoute component={ProjectNew} />} />
+          <Route path="/projects/register-existing" component={() => <ProtectedRoute component={ProjectRegisterExisting} />} />
           <Route path="/projects/:id/rapport" component={() => <ProtectedRoute component={ProjectReportPage} />} />
           <Route path="/projects/:id" component={() => <ProtectedRoute component={ProjectDetail} />} />
           <Route path="/projects" component={() => <ProtectedRoute component={ProjectsPage} />} />

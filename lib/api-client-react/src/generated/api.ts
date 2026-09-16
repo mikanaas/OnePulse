@@ -35,6 +35,9 @@ import type {
   EffectEntry,
   EffectInput,
   EffectUpdate,
+  ExistingProjectImportInput,
+  ExistingProjectImportResult,
+  ExistingProjectRegistrationInput,
   GetPortfolioHeatmapParams,
   HealthStatus,
   LinkInput,
@@ -911,6 +914,225 @@ export const useCreateProject = <TError = ErrorType<unknown>,
       > => {
       return useMutation(getCreateProjectMutationOptions(options));
     }
+
+export const getRegisterExistingProjectUrl = () => {
+
+
+
+
+  return `/api/projects/register-existing`
+}
+
+/**
+ * @summary Register an already active AI project with governance data
+ */
+export const registerExistingProject = async (existingProjectRegistrationInput: ExistingProjectRegistrationInput, options?: RequestInit): Promise<Project> => {
+
+  return customFetch<Project>(getRegisterExistingProjectUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      existingProjectRegistrationInput,)
+  }
+);}
+
+
+
+
+export const getRegisterExistingProjectMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof registerExistingProject>>, TError,{data: BodyType<ExistingProjectRegistrationInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof registerExistingProject>>, TError,{data: BodyType<ExistingProjectRegistrationInput>}, TContext> => {
+
+const mutationKey = ['registerExistingProject'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof registerExistingProject>>, {data: BodyType<ExistingProjectRegistrationInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  registerExistingProject(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RegisterExistingProjectMutationResult = NonNullable<Awaited<ReturnType<typeof registerExistingProject>>>
+    export type RegisterExistingProjectMutationBody = BodyType<ExistingProjectRegistrationInput>
+    export type RegisterExistingProjectMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Register an already active AI project with governance data
+ */
+export const useRegisterExistingProject = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof registerExistingProject>>, TError,{data: BodyType<ExistingProjectRegistrationInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof registerExistingProject>>,
+        TError,
+        {data: BodyType<ExistingProjectRegistrationInput>},
+        TContext
+      > => {
+      return useMutation(getRegisterExistingProjectMutationOptions(options));
+    }
+
+export const getImportExistingProjectsUrl = () => {
+
+
+
+
+  return `/api/projects/import-existing`
+}
+
+/**
+ * @summary Import existing AI projects from an Excel workbook
+ */
+export const importExistingProjects = async (existingProjectImportInput: ExistingProjectImportInput, options?: RequestInit): Promise<ExistingProjectImportResult> => {
+
+  return customFetch<ExistingProjectImportResult>(getImportExistingProjectsUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      existingProjectImportInput,)
+  }
+);}
+
+
+
+
+export const getImportExistingProjectsMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof importExistingProjects>>, TError,{data: BodyType<ExistingProjectImportInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof importExistingProjects>>, TError,{data: BodyType<ExistingProjectImportInput>}, TContext> => {
+
+const mutationKey = ['importExistingProjects'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof importExistingProjects>>, {data: BodyType<ExistingProjectImportInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  importExistingProjects(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ImportExistingProjectsMutationResult = NonNullable<Awaited<ReturnType<typeof importExistingProjects>>>
+    export type ImportExistingProjectsMutationBody = BodyType<ExistingProjectImportInput>
+    export type ImportExistingProjectsMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Import existing AI projects from an Excel workbook
+ */
+export const useImportExistingProjects = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof importExistingProjects>>, TError,{data: BodyType<ExistingProjectImportInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof importExistingProjects>>,
+        TError,
+        {data: BodyType<ExistingProjectImportInput>},
+        TContext
+      > => {
+      return useMutation(getImportExistingProjectsMutationOptions(options));
+    }
+
+export const getDownloadExistingProjectTemplateUrl = () => {
+
+
+
+
+  return `/api/projects/existing-import-template.xlsx`
+}
+
+/**
+ * @summary Download the Excel template for existing AI projects
+ */
+export const downloadExistingProjectTemplate = async ( options?: RequestInit): Promise<Blob> => {
+
+  return customFetch<Blob>(getDownloadExistingProjectTemplateUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadExistingProjectTemplateQueryKey = () => {
+    return [
+    `/api/projects/existing-import-template.xlsx`
+    ] as const;
+    }
+
+
+export const getDownloadExistingProjectTemplateQueryOptions = <TData = Awaited<ReturnType<typeof downloadExistingProjectTemplate>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof downloadExistingProjectTemplate>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadExistingProjectTemplateQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadExistingProjectTemplate>>> = ({ signal }) => downloadExistingProjectTemplate({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadExistingProjectTemplate>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type DownloadExistingProjectTemplateQueryResult = NonNullable<Awaited<ReturnType<typeof downloadExistingProjectTemplate>>>
+export type DownloadExistingProjectTemplateQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Download the Excel template for existing AI projects
+ */
+
+export function useDownloadExistingProjectTemplate<TData = Awaited<ReturnType<typeof downloadExistingProjectTemplate>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof downloadExistingProjectTemplate>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getDownloadExistingProjectTemplateQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 
 export const getGetProjectUrl = (id: number,) => {
 

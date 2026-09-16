@@ -248,6 +248,58 @@ paths:
               schema:
                 $ref: "#/components/schemas/Project"
 
+  /projects/register-existing:
+    post:
+      operationId: registerExistingProject
+      tags: [projects]
+      summary: Register an already active AI project with governance data
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExistingProjectRegistrationInput"
+      responses:
+        "201":
+          description: Registered project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+
+  /projects/import-existing:
+    post:
+      operationId: importExistingProjects
+      tags: [projects]
+      summary: Import existing AI projects from an Excel workbook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExistingProjectImportInput"
+      responses:
+        "200":
+          description: Import result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExistingProjectImportResult"
+
+  /projects/existing-import-template.xlsx:
+    get:
+      operationId: downloadExistingProjectTemplate
+      tags: [projects]
+      summary: Download the Excel template for existing AI projects
+      responses:
+        "200":
+          description: Excel template
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+
   /projects/{id}:
     get:
       operationId: getProject
@@ -1648,6 +1700,66 @@ components:
         estimatedHours:
           type: number
 
+    ExistingProjectRegistrationInput:
+      type: object
+      required: [name, description, businessUnit, projectOwner]
+      properties:
+        name: { type: string, minLength: 1 }
+        description: { type: string, minLength: 1 }
+        businessUnit: { type: string, minLength: 1 }
+        ownerId: { type: integer }
+        projectOwner: { type: string, minLength: 1 }
+        techOwner: { type: string }
+        contactEmail: { type: string }
+        status:
+          type: string
+          enum: [pagaende, pause, fullfort, i_drift]
+        startDate: { type: string }
+        plannedEndDate: { type: string }
+        platformTools: { type: string }
+        systemIntegrations: { type: string }
+        integrationDataFlow: { type: string }
+        projectDependencies: { type: string }
+        dataTypes: { type: string }
+        dataStorage: { type: string }
+        dataGeography: { type: string }
+        dataRetention: { type: string }
+        personalData:
+          type: string
+          enum: [ja, nei, ukjent]
+        sensitiveData:
+          type: string
+          enum: [ja, nei, ukjent]
+        aiVendor: { type: string }
+        humanInLoop: { type: string }
+        riskClassification:
+          type: string
+          enum: [lav, middels, høy]
+
+    ExistingProjectImportInput:
+      type: object
+      required: [fileBase64]
+      properties:
+        fileBase64:
+          type: string
+
+    ExistingProjectImportError:
+      type: object
+      required: [row, message]
+      properties:
+        row: { type: integer }
+        message: { type: string }
+
+    ExistingProjectImportResult:
+      type: object
+      required: [created, errors]
+      properties:
+        created: { type: integer }
+        errors:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExistingProjectImportError"
+
     ProjectMember:
       type: object
       required: [userId, projectId, role, joinedAt]
@@ -2284,9 +2396,23 @@ components:
           type: ["string", "null"]
         dataTypes:
           type: ["string", "null"]
+        dataStorage:
+          type: ["string", "null"]
+        dataRetention:
+          type: ["string", "null"]
+        personalData:
+          type: ["string", "null"]
+          enum: ["ja", "nei", "ukjent", null]
+        sensitiveData:
+          type: ["string", "null"]
+          enum: ["ja", "nei", "ukjent", null]
         aiVendor:
           type: ["string", "null"]
         dataGeography:
+          type: ["string", "null"]
+        integrationDataFlow:
+          type: ["string", "null"]
+        contactEmail:
           type: ["string", "null"]
         riskClassification:
           type: ["string", "null"]
@@ -2328,9 +2454,23 @@ components:
           type: ["string", "null"]
         dataTypes:
           type: ["string", "null"]
+        dataStorage:
+          type: ["string", "null"]
+        dataRetention:
+          type: ["string", "null"]
+        personalData:
+          type: ["string", "null"]
+          enum: ["ja", "nei", "ukjent", null]
+        sensitiveData:
+          type: ["string", "null"]
+          enum: ["ja", "nei", "ukjent", null]
         aiVendor:
           type: ["string", "null"]
         dataGeography:
+          type: ["string", "null"]
+        integrationDataFlow:
+          type: ["string", "null"]
+        contactEmail:
           type: ["string", "null"]
         riskClassification:
           type: ["string", "null"]
