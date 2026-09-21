@@ -1,14 +1,12 @@
 import { ReactNode } from "react";
 import { Link, useLocation } from "wouter";
-import { useUser, useClerk } from "@clerk/react";
-import { 
-  Briefcase, 
-  LayoutDashboard, 
-  CheckSquare, 
-  Settings, 
-  LogOut, 
-  Menu,
-  MessageSquare,
+import { useGetMe } from "@workspace/api-client-react";
+import {
+  Briefcase,
+  LayoutDashboard,
+  CheckSquare,
+  Settings,
+  LogOut,
   Sparkles,
   LayoutGrid,
   Lightbulb,
@@ -23,11 +21,9 @@ import {
   SidebarMenuItem,
   SidebarProvider,
   SidebarTrigger,
-  useSidebar,
 } from "@/components/ui/sidebar";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 function Logo() {
   return (
@@ -52,9 +48,9 @@ function Logo() {
 
 function NavContent() {
   const [location] = useLocation();
-  const { user } = useUser();
-  const isAdmin = user?.publicMetadata?.systemRole === "admin" || user?.publicMetadata?.systemRole === undefined; // Check properly in real implementation
-  
+  const { data: user } = useGetMe({ query: { queryKey: ["/api/users/me"] } });
+  const isAdmin = user?.systemRole === "admin";
+
   const navItems = [
     { title: "Portefølje", icon: LayoutDashboard, href: "/portfolio" },
     { title: "Prosjekter", icon: Briefcase, href: "/projects" },
@@ -64,19 +60,13 @@ function NavContent() {
     { title: "AI-analyse", icon: Sparkles, href: "/ai-analyse" },
   ];
 
-  if (isAdmin) {
-    navItems.push({ title: "Admin", icon: Settings, href: "/admin" });
-  }
+  if (isAdmin) navItems.push({ title: "Admin", icon: Settings, href: "/admin" });
 
   return (
     <SidebarMenu>
       {navItems.map((item) => (
         <SidebarMenuItem key={item.href}>
-          <SidebarMenuButton 
-            asChild 
-            isActive={location.startsWith(item.href)}
-            tooltip={item.title}
-          >
+          <SidebarMenuButton asChild isActive={location.startsWith(item.href)} tooltip={item.title}>
             <Link href={item.href}>
               <item.icon className="h-4 w-4" />
               <span>{item.title}</span>
@@ -89,22 +79,31 @@ function NavContent() {
 }
 
 function UserFooter() {
-  const { user } = useUser();
-  const { signOut } = useClerk();
-  
+  const { data: user } = useGetMe({ query: { queryKey: ["/api/users/me"] } });
   if (!user) return null;
-  
+
+  const initials = user.name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join("");
+
+  const signOut = () => {
+    const returnUrl = encodeURIComponent(window.location.origin + "/");
+    window.location.assign("/.auth/logout?post_logout_redirect_uri=" + returnUrl);
+  };
+
   return (
     <div className="flex items-center gap-3 p-2">
       <Avatar className="h-9 w-9">
-        <AvatarImage src={user.imageUrl} />
-        <AvatarFallback>{user.firstName?.charAt(0)}{user.lastName?.charAt(0)}</AvatarFallback>
+        <AvatarFallback>{initials || "OC"}</AvatarFallback>
       </Avatar>
       <div className="flex flex-col flex-1 overflow-hidden">
-        <span className="text-sm font-medium truncate">{user.fullName}</span>
-        <span className="text-xs text-muted-foreground truncate">{user.primaryEmailAddress?.emailAddress}</span>
+        <span className="text-sm font-medium truncate">{user.name}</span>
+        <span className="text-xs text-muted-foreground truncate">{user.email}</span>
       </div>
-      <Button variant="ghost" size="icon" onClick={() => signOut({ redirectUrl: "/" })}>
+      <Button variant="ghost" size="icon" onClick={signOut} title="Logg ut">
         <LogOut className="h-4 w-4 text-muted-foreground" />
       </Button>
     </div>
@@ -116,26 +115,17 @@ export function AppLayout({ children }: { children: ReactNode }) {
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background">
         <Sidebar variant="inset" className="border-r border-border bg-card">
-          <SidebarHeader>
-            <Logo />
-          </SidebarHeader>
-          <SidebarContent>
-            <NavContent />
-          </SidebarContent>
-          <SidebarFooter className="border-t border-border p-2">
-            <UserFooter />
-          </SidebarFooter>
+          <SidebarHeader><Logo /></SidebarHeader>
+          <SidebarContent><NavContent /></SidebarContent>
+          <SidebarFooter className="border-t border-border p-2"><UserFooter /></SidebarFooter>
         </Sidebar>
 
         <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
           <header className="flex h-14 lg:h-[60px] items-center gap-4 border-b bg-card px-6">
             <SidebarTrigger />
             <div className="flex-1" />
-            {/* Add global search or other header items here if needed */}
           </header>
-          <div className="flex-1 overflow-auto p-4 md:p-6 lg:p-8">
-            {children}
-          </div>
+          <div className="flex-1 overflow-auto p-4 md:p-6 lg:p-8">{children}</div>
         </main>
       </div>
     </SidebarProvider>
