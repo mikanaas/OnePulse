@@ -1,13 +1,7 @@
 import express, { type Express } from "express";
 import cors from "cors";
 import pinoHttp from "pino-http";
-import { clerkMiddleware } from "@clerk/express";
-import { publishableKeyFromHost } from "@clerk/shared/keys";
-import {
-  CLERK_PROXY_PATH,
-  clerkProxyMiddleware,
-  getClerkProxyHost,
-} from "./middlewares/clerkProxyMiddleware";
+import path from "node:path";
 import router from "./routes";
 import { logger } from "./lib/logger";
 
@@ -33,21 +27,31 @@ app.use(
   }),
 );
 
-app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
-
 app.use(cors({ credentials: true, origin: true }));
 app.use(express.json({ limit: "8mb" }));
 app.use(express.urlencoded({ extended: true }));
 
-app.use(
-  clerkMiddleware((req) => ({
-    publishableKey: publishableKeyFromHost(
-      getClerkProxyHost(req) ?? "",
-      process.env.CLERK_PUBLISHABLE_KEY,
-    ),
-  })),
-);
-
 app.use("/api", router);
+
+// In Azure the React build is copied into the same container as the API.
+// Keeping frontend and backend same-origin removes the need for a second
+// sandbox resource and lets Container Apps authentication protect both.
+const staticDir = process.env.STATIC_DIR ?? path.resolve(process.cwd(), "public");
+
+app.use(express.static(staticDir));
+
+app.use((req, res, next) => {
+  if (req.method !== "GET" || req.path.startsWith("/api")) {
+    next();
+    return;
+  }
+
+  if (!req.accepts("html")) {
+    next();
+    return;
+  }
+
+  res.sendFile(path.join(staticDir, "index.html"));
+});
 
 export default app;

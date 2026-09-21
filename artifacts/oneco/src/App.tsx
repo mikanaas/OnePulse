@@ -1,16 +1,12 @@
-import { Switch, Route, Redirect, useLocation, Router as WouterRouter } from "wouter";
-import { QueryClientProvider, useQueryClient } from "@tanstack/react-query";
+import { Switch, Route, Redirect, Router as WouterRouter } from "wouter";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { useSyncMe, setAuthTokenGetter, useGetMe } from "@workspace/api-client-react";
-import { useEffect, useRef } from "react";
-import { ClerkProvider, SignIn, SignUp, Show, useClerk, useUser, useAuth } from "@clerk/react";
-
-import { publishableKeyFromHost } from "@clerk/react/internal";
+import { useGetMe } from "@workspace/api-client-react";
+import { useEffect, useState } from "react";
 
 import NotFound from "@/pages/not-found";
-import Home from "@/pages/home";
 import PortfolioPage from "@/pages/portfolio";
 import ProjectsPage from "@/pages/projects";
 import ProjectDetail from "@/pages/project-detail";
@@ -26,192 +22,107 @@ import OutlookAddinPage from "@/pages/outlook-addin";
 import ProjectRegisterExisting from "@/pages/project-register-existing";
 import { ChatPanel } from "@/components/chat-panel";
 
-const clerkPubKey = publishableKeyFromHost(
-  window.location.hostname,
-  import.meta.env.VITE_CLERK_PUBLISHABLE_KEY,
-);
-
-const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL;
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 
-function stripBase(path: string): string {
-  return basePath && path.startsWith(basePath)
-    ? path.slice(basePath.length) || "/"
-    : path;
-}
-
-if (!clerkPubKey) {
-  throw new Error("Missing VITE_CLERK_PUBLISHABLE_KEY in .env file");
-}
-
-const clerkAppearance = {
-  cssLayerName: "clerk",
-  variables: {
-    colorPrimary: "hsl(288 46% 23%)",
-    fontFamily: "'Inter', sans-serif",
-  },
-};
-
-function SignInPage() {
-  return (
-    <div className="flex min-h-[100dvh] items-center justify-center bg-background px-4">
-      <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} />
-    </div>
-  );
-}
-
-function SignUpPage() {
-  return (
-    <div className="flex min-h-[100dvh] items-center justify-center bg-background px-4">
-      <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} />
-    </div>
-  );
-}
-
-function ClerkTokenSetter() {
-  const { getToken } = useAuth();
-  useEffect(() => {
-    setAuthTokenGetter(() => getToken());
-    return () => setAuthTokenGetter(null);
-  }, [getToken]);
-  return null;
-}
-
-function ClerkQueryClientCacheInvalidator() {
-  const { addListener } = useClerk();
-  const queryClient = useQueryClient();
-  const prevUserIdRef = useRef<string | null | undefined>(undefined);
+function AuthBootstrap({ children }: { children: React.ReactNode }) {
+  const [state, setState] = useState<"loading" | "ready" | "error">("loading");
 
   useEffect(() => {
-    const unsubscribe = addListener(({ user }) => {
-      const userId = user?.id ?? null;
-      if (
-        prevUserIdRef.current !== undefined &&
-        prevUserIdRef.current !== userId
-      ) {
-        queryClient.clear();
-      }
-      prevUserIdRef.current = userId;
-    });
-    return unsubscribe;
-  }, [addListener, queryClient]);
+    let cancelled = false;
 
-  return null;
-}
+    async function bootstrap() {
+      try {
+        const response = await fetch("/api/users/me/sync", {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "content-type": "application/json" },
+          body: "{}",
+        });
 
-function SyncUser() {
-  const { user, isLoaded } = useUser();
-  const syncMe = useSyncMe();
-  const hasSynced = useRef(false);
-
-  useEffect(() => {
-    if (isLoaded && user && !hasSynced.current) {
-      hasSynced.current = true;
-      syncMe.mutate({
-        data: {
-          clerkId: user.id,
-          name: user.fullName || "User",
-          email: user.primaryEmailAddress?.emailAddress || "",
+        if (!response.ok) {
+          throw new Error("Authentication bootstrap failed: " + response.status);
         }
-      });
+
+        await queryClient.invalidateQueries();
+
+        if (!cancelled) setState("ready");
+      } catch (error) {
+        console.error(error);
+        if (!cancelled) setState("error");
+      }
     }
-  }, [isLoaded, user, syncMe]);
 
-  return null;
-}
+    void bootstrap();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
-function HomeRedirect() {
-  return (
-    <>
-      <Show when="signed-in">
-        <Redirect to="/portfolio" />
-      </Show>
-      <Show when="signed-out">
-        <Home />
-      </Show>
-    </>
-  );
+  if (state === "loading") {
+    return (
+      <div className="flex min-h-[100dvh] items-center justify-center bg-background">
+        <div className="text-sm text-muted-foreground">Logger inn med Microsoft...</div>
+      </div>
+    );
+  }
+
+  if (state === "error") {
+    return (
+      <div className="flex min-h-[100dvh] items-center justify-center bg-background px-6">
+        <div className="max-w-md text-center">
+          <h1 className="text-xl font-semibold">Kunne ikke logge inn</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            OnePulse forventer Microsoft Entra ID autentisering fra Azure Container Apps.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
 }
 
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
   return (
     <>
-      <Show when="signed-in">
-        <Component />
-        <ChatPanel />
-      </Show>
-      <Show when="signed-out">
-        <Redirect to="/" />
-      </Show>
+      <Component />
+      <ChatPanel />
     </>
   );
 }
 
 function AdminRoute({ component: Component }: { component: React.ComponentType }) {
-  const { isLoaded, isSignedIn } = useUser();
-  const { data: me, isLoading: meLoading } = useGetMe({ query: { queryKey: ["/api/users/me"], enabled: isSignedIn === true } });
+  const { data: me, isLoading } = useGetMe({
+    query: { queryKey: ["/api/users/me"] },
+  });
 
-  if (!isLoaded || meLoading) return null;
-  if (!isSignedIn) return <Redirect to="/" />;
+  if (isLoading) return null;
   if (me?.systemRole !== "admin") return <Redirect to="/portfolio" />;
 
   return <ProtectedRoute component={Component} />;
 }
 
-function ClerkProviderWithRoutes() {
-  const [, setLocation] = useLocation();
-
+function Routes() {
   return (
-    <ClerkProvider
-      publishableKey={clerkPubKey}
-      proxyUrl={clerkProxyUrl}
-      appearance={clerkAppearance}
-      signInUrl={`${basePath}/sign-in`}
-      signUpUrl={`${basePath}/sign-up`}
-      routerPush={(to) => setLocation(stripBase(to))}
-      routerReplace={(to) => setLocation(stripBase(to), { replace: true })}
-      localization={{
-        signIn: {
-          start: {
-            title: "Logg inn på OnePulse",
-            subtitle: "Velkommen tilbake! Logg inn for å fortsette.",
-          },
-        },
-        signUp: {
-          start: {
-            title: "Opprett konto i OnePulse",
-            subtitle: "Kom i gang i dag.",
-          },
-        },
-      }}
-    >
-      <QueryClientProvider client={queryClient}>
-        <ClerkTokenSetter />
-        <ClerkQueryClientCacheInvalidator />
-        <SyncUser />
-        <Switch>
-          <Route path="/" component={HomeRedirect} />
-          <Route path="/sign-in/*?" component={SignInPage} />
-          <Route path="/sign-up/*?" component={SignUpPage} />
-          <Route path="/outlook-addin" component={OutlookAddinPage} />
-          
-          <Route path="/portfolio" component={() => <ProtectedRoute component={PortfolioPage} />} />
-          <Route path="/projects/new" component={() => <ProtectedRoute component={ProjectNew} />} />
-          <Route path="/projects/register-existing" component={() => <ProtectedRoute component={ProjectRegisterExisting} />} />
-          <Route path="/projects/:id/rapport" component={() => <ProtectedRoute component={ProjectReportPage} />} />
-          <Route path="/projects/:id" component={() => <ProtectedRoute component={ProjectDetail} />} />
-          <Route path="/projects" component={() => <ProtectedRoute component={ProjectsPage} />} />
-          <Route path="/rapport" component={() => <ProtectedRoute component={PortfolioReportPage} />} />
-          <Route path="/ai-analyse" component={() => <ProtectedRoute component={AiAnalysisPage} />} />
-          <Route path="/my-work" component={() => <ProtectedRoute component={MyWorkPage} />} />
-          <Route path="/prosjektoversikt" component={() => <ProtectedRoute component={ProjectOverviewPage} />} />
-          <Route path="/forslag" component={() => <ProtectedRoute component={ProposalsPage} />} />
-          <Route path="/admin" component={() => <AdminRoute component={AdminPage} />} />
-          
-          <Route component={NotFound} />
-        </Switch>
-      </QueryClientProvider>
-    </ClerkProvider>
+    <AuthBootstrap>
+      <Switch>
+        <Route path="/" component={() => <Redirect to="/portfolio" />} />
+        <Route path="/outlook-addin" component={OutlookAddinPage} />
+        <Route path="/portfolio" component={() => <ProtectedRoute component={PortfolioPage} />} />
+        <Route path="/projects/new" component={() => <ProtectedRoute component={ProjectNew} />} />
+        <Route path="/projects/register-existing" component={() => <ProtectedRoute component={ProjectRegisterExisting} />} />
+        <Route path="/projects/:id/rapport" component={() => <ProtectedRoute component={ProjectReportPage} />} />
+        <Route path="/projects/:id" component={() => <ProtectedRoute component={ProjectDetail} />} />
+        <Route path="/projects" component={() => <ProtectedRoute component={ProjectsPage} />} />
+        <Route path="/rapport" component={() => <ProtectedRoute component={PortfolioReportPage} />} />
+        <Route path="/ai-analyse" component={() => <ProtectedRoute component={AiAnalysisPage} />} />
+        <Route path="/my-work" component={() => <ProtectedRoute component={MyWorkPage} />} />
+        <Route path="/prosjektoversikt" component={() => <ProtectedRoute component={ProjectOverviewPage} />} />
+        <Route path="/forslag" component={() => <ProtectedRoute component={ProposalsPage} />} />
+        <Route path="/admin" component={() => <AdminRoute component={AdminPage} />} />
+        <Route component={NotFound} />
+      </Switch>
+    </AuthBootstrap>
   );
 }
 
@@ -219,7 +130,9 @@ function App() {
   return (
     <WouterRouter base={basePath}>
       <TooltipProvider>
-        <ClerkProviderWithRoutes />
+        <QueryClientProvider client={queryClient}>
+          <Routes />
+        </QueryClientProvider>
         <Toaster />
       </TooltipProvider>
     </WouterRouter>
